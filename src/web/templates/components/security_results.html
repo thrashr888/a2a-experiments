@@ -1,0 +1,53 @@
+<div class="results-title">Security Check Results</div>
+
+<div class="security-grid">
+    <div class="security-summary">
+        <h4>🔒 Security Overview</h4>
+        <div class="security-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ result.summary.total_alerts }}</span>
+                <span class="stat-label">Total Alerts</span>
+            </div>
+            <div class="stat-item high">
+                <span class="stat-number">{{ result.summary.high_severity_alerts }}</span>
+                <span class="stat-label">High Severity</span>
+            </div>
+            <div class="stat-item medium">
+                <span class="stat-number">{{ result.summary.medium_severity_alerts }}</span>
+                <span class="stat-label">Medium</span>
+            </div>
+            <div class="stat-item low">
+                <span class="stat-number">{{ result.summary.low_severity_alerts }}</span>
+                <span class="stat-label">Low</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-agents">
+        <h4>🛡️ Agent Results</h4>
+        {% for agent_name, agent_result in result.results.items() %}
+        <div class="agent-result-card {{ agent_result.status }}">
+            <div class="agent-result-header">
+                <span class="agent-name">{{ agent_name }}</span>
+                <span class="status-indicator {{ agent_result.status }}">{{ agent_result.status }}</span>
+            </div>
+            {% if agent_result.status == 'success' %}
+                <div class="alert-count">{{ agent_result.alerts|length }} alerts found</div>
+                {% if agent_result.alerts %}
+                    <div class="alerts-list">
+                        {% for alert in agent_result.alerts[:3] %}
+                        <div class="alert-item severity-{{ alert.severity }}">
+                            <strong>{{ alert.type }}</strong>: {{ alert.message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-alerts">✅ No security alerts</div>
+                {% endif %}
+            {% else %}
+                <div class="error-message">{{ agent_result.error }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>

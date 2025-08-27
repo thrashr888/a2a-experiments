@@ -1,0 +1,48 @@
+<div class="results-title">Resource Optimization Results</div>
+
+<div class="optimization-grid">
+    {% set recommendations = [] %}
+    {% for agent_name, agent_result in result.results.items() %}
+        {% if agent_result.recommendations %}
+            {% set _ = recommendations.extend(agent_result.recommendations) %}
+        {% endif %}
+    {% endfor %}
+    
+    <div class="recommendations-summary">
+        <h4>⚡ Optimization Overview</h4>
+        <div class="recommendation-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ recommendations|length }}</span>
+                <span class="stat-label">Total Recommendations</span>
+            </div>
+            <div class="stat-item high">
+                <span class="stat-number">{{ recommendations|selectattr("priority", "equalto", "high")|list|length }}</span>
+                <span class="stat-label">High Priority</span>
+            </div>
+            <div class="stat-item medium">
+                <span class="stat-number">{{ recommendations|selectattr("priority", "equalto", "medium")|list|length }}</span>
+                <span class="stat-label">Medium Priority</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="recommendations-list">
+        <h4>💡 Recommendations</h4>
+        {% if recommendations %}
+            {% for rec in recommendations %}
+            <div class="recommendation-card priority-{{ rec.priority }}">
+                <div class="rec-header">
+                    <span class="rec-type">{{ rec.type.replace('_', ' ').upper() }}</span>
+                    <span class="priority-badge priority-{{ rec.priority }}">{{ rec.priority }}</span>
+                </div>
+                <div class="rec-current">Current: {{ rec.current_usage or rec.current_cost or 'N/A' }}</div>
+                <div class="rec-message">{{ rec.recommendation }}</div>
+                <div class="rec-savings">{{ rec.potential_savings or rec.potential_cost or '' }}</div>
+                <div class="rec-action"><strong>Action:</strong> {{ rec.action }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-recommendations">✅ No optimization recommendations at this time</div>
+        {% endif %}
+    </div>
+</div>

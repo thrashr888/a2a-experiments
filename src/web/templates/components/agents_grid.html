@@ -1,0 +1,22 @@
+<h2>🤖 Active Agents</h2>
+<div class="agents-grid">
+    {% if agents %}
+        {% for agent in agents %}
+        <div class="agent-card">
+            <div class="agent-header">
+                <div class="agent-name">{{ agent.name }}</div>
+                <div class="status-badge {{ agent.status }}">{{ agent.status }}</div>
+            </div>
+            <div class="agent-description">{{ agent.description }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="agent-card">
+            <div class="agent-header">
+                <div class="agent-name">No agents registered</div>
+                <div class="status-badge offline">offline</div>
+            </div>
+            <div class="agent-description">No agents are currently registered in the system.</div>
+        </div>
+    {% endif %}
+</div>

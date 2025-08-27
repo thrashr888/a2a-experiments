@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2A Learning Lab - Multi-Agent Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/dashboard.css') }}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body hx-boost="true">
+    <div class="container">
+        <div class="header">
+            <div class="title">
+                <span class="emoji">🤖</span>
+                <h1>A2A Learning Lab</h1>
+            </div>
+            <p>Multi-Agent System for DevOps, SecOps, and FinOps Operations</p>
+        </div>
+        
+        <!-- Stats Grid - Auto-refreshing -->
+        <div class="stats-grid" 
+             hx-get="/api/stats" 
+             hx-trigger="load, every 30s" 
+             hx-swap="innerHTML">
+            <div class="stat-card">
+                <div class="stat-value">-</div>
+                <div class="stat-label">Total Agents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">-</div>
+                <div class="stat-label">Online Agents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Workflows Run</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">🟡</div>
+                <div class="stat-label">System Status</div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="workflows">
+            <h2>🚀 Workflows</h2>
+            <div class="workflow-buttons">
+                <button class="workflow-btn" 
+                        hx-post="/api/orchestrate/system-overview"
+                        hx-target="#results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#loading">
+                    📊 System Overview
+                </button>
+                <button class="workflow-btn" 
+                        hx-post="/api/orchestrate/security-check"
+                        hx-target="#results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#loading">
+                    🔒 Security Check
+                </button>
+                <button class="workflow-btn" 
+                        hx-post="/api/orchestrate/resource-optimization"
+                        hx-target="#results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#loading">
+                    ⚡ Resource Optimization
+                </button>
+                <button class="workflow-btn" 
+                        hx-post="/api/orchestrate/cost-analysis"
+                        hx-target="#results"
+                        hx-swap="innerHTML"
+                        hx-indicator="#loading">
+                    💰 Cost Analysis
+                </button>
+            </div>
+        </div>
+        
+        <!-- Agents Grid - Auto-refreshing -->
+        <div hx-get="/api/agents-grid" 
+             hx-trigger="load, every 30s" 
+             hx-swap="innerHTML">
+            <h2>🤖 Active Agents</h2>
+            <div class="agents-grid">
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-name">Loading...</div>
+                        <div class="status-badge">-</div>
+                    </div>
+                    <div class="agent-description">Loading agents...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div id="loading" class="htmx-indicator">
+            <div class="loading"></div>
+            Processing...
+        </div>
+        
+        <!-- Results Section -->
+        <div id="results" class="results">
+            <!-- Workflow results will be inserted here -->
+        </div>
+    </div>
+
+    <style>
+        .htmx-indicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            color: var(--text-primary);
+            z-index: 1000;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .htmx-request .htmx-indicator {
+            display: flex;
+        }
+        
+        .htmx-request button {
+            opacity: 0.6;
+            cursor: wait;
+        }
+        
+        .results {
+            margin-top: var(--space-8);
+        }
+        
+        .results:empty {
+            display: none;
+        }
+        
+        .results:not(:empty) {
+            display: block;
+        }
+    </style>
+</body>
+</html>

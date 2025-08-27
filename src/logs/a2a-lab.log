@@ -1,0 +1,31 @@
+2025-08-26 18:37:39,813 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-26 18:37:39,814 - __main__ - INFO - Starting HostAgent...
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-26 18:37:39,814 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-26 18:37:40,815 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-26 18:37:40,815 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-26 18:37:40,815 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-26 18:37:40,815 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-26 18:37:40,816 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-26 18:37:40,816 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-26 18:37:41,816 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-26 18:37:41,816 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-26 18:37:41,817 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-26 18:37:41,817 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-26 18:37:41,817 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-26 18:37:41,817 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-26 18:37:42,817 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-26 18:37:42,818 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-26 18:37:42,818 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-26 18:37:42,818 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-26 18:37:42,818 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-26 18:37:42,818 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-26 18:37:43,818 - __main__ - INFO - Started 4 agents
+2025-08-26 18:37:43,818 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-26 18:37:43,818 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-26 18:37:43,818 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-26 18:37:44,010 - __main__ - INFO - Starting web server on 0.0.0.0:8080

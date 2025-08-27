@@ -1,0 +1,512 @@
+2025-08-26 18:39:55,930 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-26 18:39:55,930 - __main__ - INFO - Starting HostAgent...
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-26 18:39:55,931 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-26 18:39:56,934 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-26 18:39:56,935 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-26 18:39:56,935 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-26 18:39:56,935 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-26 18:39:56,935 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-26 18:39:56,935 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-26 18:39:57,935 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-26 18:39:57,937 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-26 18:39:57,937 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-26 18:39:57,937 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-26 18:39:57,937 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-26 18:39:57,937 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-26 18:39:58,936 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-26 18:39:58,937 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-26 18:39:58,937 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-26 18:39:58,937 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-26 18:39:58,937 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-26 18:39:58,937 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-26 18:39:59,938 - __main__ - INFO - Started 4 agents
+2025-08-26 18:39:59,939 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-26 18:39:59,939 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-26 18:39:59,941 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-26 18:39:59,983 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-26 18:40:16,027 - __main__ - INFO - Received signal 2
+2025-08-26 18:40:16,027 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-26 18:41:07,402 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:07,604 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:11,131 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:11,333 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:11,816 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:12,019 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:12,241 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:12,443 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:14,037 - __main__ - INFO - Received signal 2
+2025-08-26 18:41:14,240 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:35,981 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,168 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,183 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,355 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,385 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,505 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,587 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,683 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,790 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,926 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,965 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,991 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:36,991 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,025 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,059 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,093 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,126 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,160 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,193 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,193 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,227 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,260 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,295 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,326 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,360 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,393 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,394 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,426 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,596 - __main__ - INFO - Received signal 2
+2025-08-26 18:42:37,798 - __main__ - INFO - Received signal 2
+2025-08-27 01:42:50,525 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 01:42:50,525 - __main__ - INFO - Starting HostAgent...
+2025-08-27 01:42:50,526 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 01:42:50,526 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 01:42:50,526 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 01:42:50,526 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 01:42:50,527 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 01:42:50,527 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 01:42:51,530 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 01:42:51,533 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 01:42:51,533 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 01:42:51,533 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 01:42:51,533 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 01:42:51,534 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 01:42:52,538 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 01:42:52,542 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 01:42:52,543 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 01:42:52,543 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 01:42:52,543 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 01:42:52,543 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 01:42:53,540 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 01:42:53,543 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 01:42:53,543 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 01:42:53,543 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 01:42:53,543 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 01:42:53,544 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 01:42:54,545 - __main__ - INFO - Started 4 agents
+2025-08-27 01:42:54,546 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 01:42:54,547 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 01:42:54,548 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 01:42:54,627 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 01:43:09,787 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:43:09,795 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:43:10,804 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:10,819 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:43:10,822 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:10,834 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:43:11,843 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:11,846 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:48,793 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:43:48,805 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:43:49,822 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:49,838 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:43:49,841 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:49,852 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:43:50,863 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:43:50,867 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:01,909 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 01:44:01,911 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:36,021 - __main__ - INFO - Received signal 15
+2025-08-27 01:44:36,022 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-27 01:44:45,834 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 01:44:45,834 - __main__ - INFO - Starting HostAgent...
+2025-08-27 01:44:45,835 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 01:44:45,835 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 01:44:45,836 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 01:44:45,836 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 01:44:45,836 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 01:44:45,836 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 01:44:46,842 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 01:44:46,852 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 01:44:46,852 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 01:44:46,852 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 01:44:46,852 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 01:44:46,852 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 01:44:47,843 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 01:44:47,847 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 01:44:47,848 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 01:44:47,848 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 01:44:47,849 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 01:44:47,849 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 01:44:48,843 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 01:44:48,846 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 01:44:48,847 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 01:44:48,847 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 01:44:48,848 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 01:44:48,848 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 01:44:49,847 - __main__ - INFO - Started 4 agents
+2025-08-27 01:44:49,847 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 01:44:49,848 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 01:44:49,849 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 01:44:49,873 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 01:44:54,517 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 01:44:54,524 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:44:54,526 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:54,527 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:56,034 - utils.a2a_mock - INFO - Received A2A call: orchestrate_resource_optimization
+2025-08-27 01:44:56,046 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:44:57,062 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:57,076 - utils.a2a_mock - INFO - Received A2A call: get_resource_alerts
+2025-08-27 01:44:58,084 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:58,097 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:44:59,107 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:59,109 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:44:59,830 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:44:59,836 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:45:00,846 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:00,859 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:45:00,860 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:00,870 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:45:01,877 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:01,891 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:45:02,907 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:02,909 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:10,072 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:45:10,090 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:45:11,095 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:11,107 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:45:11,108 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:11,118 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:45:12,124 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:12,137 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:45:13,144 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:13,147 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:24,790 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:45:24,797 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:45:25,809 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:25,817 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:45:25,818 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:25,825 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:45:26,838 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:26,840 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:50,388 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:45:50,402 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:45:51,415 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:51,427 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:45:51,429 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:51,439 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:45:52,446 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:52,456 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:45:53,474 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:45:53,478 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:16,704 - __main__ - INFO - Received signal 15
+2025-08-27 01:47:16,706 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-27 01:47:26,526 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 01:47:26,527 - __main__ - INFO - Starting HostAgent...
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 01:47:26,528 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 01:47:27,533 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 01:47:27,539 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 01:47:27,539 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 01:47:27,540 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 01:47:27,540 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 01:47:27,540 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 01:47:28,535 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 01:47:28,538 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 01:47:28,539 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 01:47:28,539 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 01:47:28,540 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 01:47:28,540 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 01:47:29,541 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 01:47:29,546 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 01:47:29,547 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 01:47:29,547 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 01:47:29,547 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 01:47:29,547 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 01:47:30,550 - __main__ - INFO - Started 4 agents
+2025-08-27 01:47:30,551 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 01:47:30,551 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 01:47:30,552 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 01:47:30,573 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 01:47:38,487 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:47:38,494 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:47:39,509 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:39,520 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:47:39,523 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:39,533 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:47:40,539 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:40,549 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:47:41,554 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:41,556 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:47:46,979 - __main__ - INFO - Received signal 15
+2025-08-27 01:47:46,981 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-27 01:47:58,235 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 01:47:58,235 - __main__ - INFO - Starting HostAgent...
+2025-08-27 01:47:58,236 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 01:47:58,236 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 01:47:58,236 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 01:47:58,236 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 01:47:58,236 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 01:47:58,237 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 01:47:59,241 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 01:47:59,246 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 01:47:59,246 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 01:47:59,246 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 01:47:59,247 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 01:47:59,247 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 01:48:00,244 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 01:48:00,249 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 01:48:00,250 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 01:48:00,250 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 01:48:00,251 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 01:48:00,251 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 01:48:01,243 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 01:48:01,247 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 01:48:01,248 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 01:48:01,248 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 01:48:01,248 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 01:48:01,248 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 01:48:02,246 - __main__ - INFO - Started 4 agents
+2025-08-27 01:48:02,247 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 01:48:02,247 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 01:48:02,248 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 01:48:02,312 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 01:48:09,481 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:48:09,488 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:48:10,502 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:10,511 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:48:12,188 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:12,197 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:48:13,201 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:13,216 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:48:15,290 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:15,293 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:26,796 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:48:26,803 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:48:27,808 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:27,823 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:48:27,826 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:27,838 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:48:28,859 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:48:28,862 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:00,335 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:49:00,353 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:49:01,360 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:01,372 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:49:01,374 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:01,386 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:49:02,394 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:02,398 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:06,153 - utils.a2a_mock - INFO - Received A2A call: orchestrate_resource_optimization
+2025-08-27 01:49:06,166 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:49:07,175 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:07,196 - utils.a2a_mock - INFO - Received A2A call: get_resource_alerts
+2025-08-27 01:49:08,207 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:08,224 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:49:11,209 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:11,211 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:20,890 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:49:20,900 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:49:21,908 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:21,922 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:49:23,249 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:23,265 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:49:24,273 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:24,289 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:49:26,373 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:49:26,375 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:50:21,379 - __main__ - INFO - Received signal 15
+2025-08-27 01:50:21,380 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-27 01:50:31,150 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 01:50:31,151 - __main__ - INFO - Starting HostAgent...
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 01:50:31,152 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 01:50:32,153 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 01:50:32,156 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 01:50:32,156 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 01:50:32,156 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 01:50:32,157 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 01:50:32,157 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 01:50:33,154 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 01:50:33,156 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 01:50:33,161 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 01:50:33,162 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 01:50:33,162 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 01:50:33,162 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 01:50:34,159 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 01:50:34,163 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 01:50:34,164 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 01:50:34,164 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 01:50:34,164 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 01:50:34,164 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 01:50:35,163 - __main__ - INFO - Started 4 agents
+2025-08-27 01:50:35,163 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 01:50:35,163 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 01:50:35,163 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 01:50:35,186 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 01:51:54,488 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:51:54,497 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:51:55,504 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:51:55,515 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:52:02,648 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:02,656 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:52:03,660 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:03,668 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:52:11,785 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:11,789 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:15,913 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 01:52:15,921 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:52:15,923 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:15,924 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:20,236 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:52:20,243 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:52:21,252 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:21,273 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:52:21,275 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:21,287 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:52:22,299 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:52:22,302 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:53:14,311 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:53:14,327 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:53:15,337 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:53:15,351 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:53:15,354 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:53:15,364 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:53:16,382 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:53:16,387 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:54:08,253 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 01:54:08,267 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:54:09,277 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:54:09,290 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 01:54:17,399 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:54:17,408 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 01:54:18,420 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:54:18,438 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:54:27,444 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:54:27,447 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:19,181 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 01:55:19,189 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:55:19,192 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:19,193 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:28,202 - utils.a2a_mock - INFO - Received A2A call: orchestrate_resource_optimization
+2025-08-27 01:55:28,210 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:55:29,216 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:29,227 - utils.a2a_mock - INFO - Received A2A call: get_resource_alerts
+2025-08-27 01:55:30,234 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:30,243 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 01:55:38,407 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:55:38,408 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:56:13,146 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 01:56:13,162 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 01:56:14,171 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:56:14,183 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 01:56:14,187 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:56:14,199 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 01:56:15,212 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 01:56:15,215 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:03:33,518 - __main__ - INFO - Received signal 15
+2025-08-27 02:03:33,519 - __main__ - INFO - Shutting down A2A Learning Lab...
+2025-08-27 02:03:41,972 - utils.a2a_mock - WARNING - Could not connect to http://localhost:8081
+2025-08-27 02:03:43,330 - __main__ - INFO - Starting A2A Learning Lab...
+2025-08-27 02:03:43,330 - __main__ - INFO - Starting HostAgent...
+2025-08-27 02:03:43,331 - utils.a2a_mock - INFO - Registered method: orchestrate_security_check
+2025-08-27 02:03:43,331 - utils.a2a_mock - INFO - Registered method: orchestrate_resource_optimization
+2025-08-27 02:03:43,331 - utils.a2a_mock - INFO - Registered method: get_system_overview
+2025-08-27 02:03:43,331 - utils.a2a_mock - INFO - Registered method: orchestrate_cost_analysis
+2025-08-27 02:03:43,331 - utils.a2a_mock - INFO - Registered method: list_available_agents
+2025-08-27 02:03:43,332 - utils.a2a_mock - INFO - Starting A2A server on localhost:8081
+2025-08-27 02:03:44,334 - __main__ - INFO - Starting InfrastructureMonitorAgent...
+2025-08-27 02:03:44,339 - utils.a2a_mock - INFO - Registered method: get_system_metrics
+2025-08-27 02:03:44,340 - utils.a2a_mock - INFO - Registered method: check_disk_usage
+2025-08-27 02:03:44,340 - utils.a2a_mock - INFO - Registered method: get_network_status
+2025-08-27 02:03:44,340 - utils.a2a_mock - INFO - Registered method: get_resource_alerts
+2025-08-27 02:03:44,341 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8082
+2025-08-27 02:03:45,339 - __main__ - INFO - Starting SecurityMonitorAgent...
+2025-08-27 02:03:45,346 - utils.a2a_mock - INFO - Registered method: scan_failed_logins
+2025-08-27 02:03:45,347 - utils.a2a_mock - INFO - Registered method: check_suspicious_processes
+2025-08-27 02:03:45,347 - utils.a2a_mock - INFO - Registered method: scan_network_connections
+2025-08-27 02:03:45,347 - utils.a2a_mock - INFO - Registered method: get_security_alerts
+2025-08-27 02:03:45,348 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8083
+2025-08-27 02:03:46,342 - __main__ - INFO - Starting CostMonitorAgent...
+2025-08-27 02:03:46,344 - utils.a2a_mock - INFO - Registered method: get_resource_costs
+2025-08-27 02:03:46,345 - utils.a2a_mock - INFO - Registered method: analyze_container_costs
+2025-08-27 02:03:46,345 - utils.a2a_mock - INFO - Registered method: get_optimization_recommendations
+2025-08-27 02:03:46,345 - utils.a2a_mock - INFO - Registered method: calculate_monthly_projection
+2025-08-27 02:03:46,345 - utils.a2a_mock - INFO - Starting A2A server on 0.0.0.0:8084
+2025-08-27 02:03:47,344 - __main__ - INFO - Started 4 agents
+2025-08-27 02:03:47,345 - __main__ - INFO - A2A Learning Lab is running...
+2025-08-27 02:03:47,346 - __main__ - INFO - Web interface available at: http://0.0.0.0:8080
+2025-08-27 02:03:47,346 - __main__ - INFO - Press Ctrl+C to shutdown
+2025-08-27 02:03:47,370 - __main__ - INFO - Starting web server on 0.0.0.0:8080
+2025-08-27 02:03:51,194 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 02:03:51,203 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 02:03:52,206 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:03:52,214 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 02:03:59,655 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:03:59,666 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 02:04:00,670 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:00,682 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 02:04:08,812 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:08,814 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:43,218 - utils.a2a_mock - INFO - Received A2A call: orchestrate_resource_optimization
+2025-08-27 02:04:43,229 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 02:04:44,245 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:44,255 - utils.a2a_mock - INFO - Received A2A call: get_resource_alerts
+2025-08-27 02:04:45,267 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:45,275 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 02:04:53,378 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:53,379 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:58,775 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 02:04:58,784 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 02:04:58,786 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:04:58,788 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:05:02,088 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 02:05:02,099 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 02:05:03,107 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:05:03,116 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 02:05:03,118 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:05:03,125 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 02:05:04,135 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:05:04,137 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:08:17,892 - utils.a2a_mock - INFO - Received A2A call: orchestrate_cost_analysis
+2025-08-27 02:08:17,903 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 02:08:18,911 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:08:18,924 - utils.a2a_mock - INFO - Received A2A call: analyze_container_costs
+2025-08-27 02:08:26,058 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:08:26,072 - utils.a2a_mock - INFO - Received A2A call: calculate_monthly_projection
+2025-08-27 02:08:27,090 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:08:27,101 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 02:08:35,225 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:08:35,227 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:16:42,716 - utils.a2a_mock - INFO - Received A2A call: orchestrate_security_check
+2025-08-27 02:16:42,729 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 02:16:42,732 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:16:42,734 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:16:49,019 - utils.a2a_mock - INFO - Received A2A call: orchestrate_resource_optimization
+2025-08-27 02:16:49,031 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 02:16:50,039 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:16:50,052 - utils.a2a_mock - INFO - Received A2A call: get_resource_alerts
+2025-08-27 02:16:51,064 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:16:51,072 - utils.a2a_mock - INFO - Received A2A call: get_optimization_recommendations
+2025-08-27 02:17:00,060 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:17:00,062 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:17:07,036 - utils.a2a_mock - INFO - Received A2A call: get_system_overview
+2025-08-27 02:17:07,051 - utils.a2a_mock - INFO - Received A2A call: get_system_metrics
+2025-08-27 02:17:08,058 - httpx - INFO - HTTP Request: POST http://localhost:8082/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:17:08,076 - utils.a2a_mock - INFO - Received A2A call: get_security_alerts
+2025-08-27 02:17:08,080 - httpx - INFO - HTTP Request: POST http://localhost:8083/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:17:08,092 - utils.a2a_mock - INFO - Received A2A call: get_resource_costs
+2025-08-27 02:17:09,110 - httpx - INFO - HTTP Request: POST http://localhost:8084/a2a/call "HTTP/1.1 200 OK"
+2025-08-27 02:17:09,112 - httpx - INFO - HTTP Request: POST http://localhost:8081/a2a/call "HTTP/1.1 200 OK"

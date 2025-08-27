@@ -1,0 +1,95 @@
+<div class="results-title">Cost Analysis Results</div>
+
+<div class="cost-analysis-grid">
+    <div class="cost-summary">
+        <h4>💰 Cost Summary</h4>
+        <div class="cost-overview">
+            <div class="cost-main">
+                <span class="cost-amount">${{ "%.2f"|format(result.summary.total_daily_cost) }}</span>
+                <span class="cost-period">per day</span>
+            </div>
+            <div class="cost-projection">
+                <span class="projection-amount">${{ "%.2f"|format(result.summary.estimated_monthly_cost) }}</span>
+                <span class="cost-period">per month</span>
+            </div>
+        </div>
+    </div>
+    
+    {% set cost_result = result.results.values()|list|first %}
+    {% if cost_result and cost_result.status == 'success' %}
+    <div class="cost-breakdown">
+        <h4>📊 Resource Breakdown</h4>
+        <div class="breakdown-chart">
+            {% for resource, cost in cost_result.resource_costs.cost_breakdown.items() %}
+            {% set percentage = ((cost / cost_result.resource_costs.total_cost) * 100)|round(1) %}
+            <div class="breakdown-item">
+                <div class="breakdown-label">
+                    <span class="resource-name">{{ resource.replace('_', ' ') }}</span>
+                    <span class="resource-cost">${{ "%.3f"|format(cost) }}</span>
+                </div>
+                <div class="breakdown-bar">
+                    <div class="breakdown-fill" style="width: {{ percentage }}%"></div>
+                </div>
+                <span class="breakdown-percent">{{ percentage }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="utilization-stats">
+        <h4>📈 Resource Utilization</h4>
+        <div class="utilization-grid">
+            <div class="util-item">
+                <span class="util-label">CPU</span>
+                <span class="util-value">{{ "%.1f"|format(cost_result.resource_costs.resource_utilization.cpu_percent) }}%</span>
+                <div class="util-bar"><div class="util-fill" style="width: {{ cost_result.resource_costs.resource_utilization.cpu_percent }}%"></div></div>
+            </div>
+            <div class="util-item">
+                <span class="util-label">Memory</span>
+                <span class="util-value">{{ "%.1f"|format(cost_result.resource_costs.resource_utilization.memory_percent) }}%</span>
+                <div class="util-bar"><div class="util-fill" style="width: {{ cost_result.resource_costs.resource_utilization.memory_percent }}%"></div></div>
+            </div>
+            <div class="util-item">
+                <span class="util-label">Disk</span>
+                <span class="util-value">{{ "%.1f"|format(cost_result.resource_costs.resource_utilization.disk_percent) }}%</span>
+                <div class="util-bar"><div class="util-fill" style="width: {{ cost_result.resource_costs.resource_utilization.disk_percent }}%"></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="monthly-projection">
+        <h4>📅 Monthly Projection</h4>
+        <div class="projection-details">
+            <div class="projection-item">
+                <span class="proj-label">Conservative Budget</span>
+                <span class="proj-value">${{ "%.2f"|format(cost_result.monthly_projection.budget_recommendations.conservative) }}</span>
+            </div>
+            <div class="projection-item">
+                <span class="proj-label">Moderate Budget</span>
+                <span class="proj-value">${{ "%.2f"|format(cost_result.monthly_projection.budget_recommendations.moderate) }}</span>
+            </div>
+            <div class="projection-item">
+                <span class="proj-label">Growth Budget</span>
+                <span class="proj-value">${{ "%.2f"|format(cost_result.monthly_projection.budget_recommendations.aggressive_growth) }}</span>
+            </div>
+        </div>
+    </div>
+    
+    {% if cost_result.recommendations %}
+    <div class="cost-recommendations">
+        <h4>💡 Cost Optimization</h4>
+        <div class="recommendations-list">
+            {% for rec in cost_result.recommendations %}
+            <div class="recommendation-item priority-{{ rec.priority }}">
+                <div class="rec-title">{{ rec.type.replace('_', ' ').upper() }}</div>
+                <div class="rec-description">{{ rec.recommendation }}</div>
+                <div class="rec-savings">{{ rec.potential_savings }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="error-message">Cost analysis data unavailable</div>
+    {% endif %}
+</div>

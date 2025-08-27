@@ -1,0 +1,39 @@
+<div class="results-title">System Overview Results</div>
+
+<div class="overview-grid">
+    <div class="overview-card">
+        <h4>🤖 Agent Status</h4>
+        <div class="metric-large">{{ result.registry_status.total_agents }}</div>
+        <div class="metric-label">Total Agents</div>
+        <div class="agent-breakdown">
+            <span class="status-badge online">{{ result.registry_status.agents_by_status.online }} Online</span>
+            <span class="status-badge offline">{{ result.registry_status.agents_by_status.offline }} Offline</span>
+            <span class="status-badge error">{{ result.registry_status.agents_by_status.error }} Error</span>
+        </div>
+    </div>
+    
+    <div class="overview-card">
+        <h4>💚 System Health</h4>
+        <div class="health-indicator {{ result.system_status }}">
+            {% if result.system_status == 'healthy' %}🟢{% elif result.system_status == 'warning' %}🟡{% else %}🔴{% endif %}
+            {{ result.system_status.upper() }}
+        </div>
+        <div class="health-details">
+            {{ result.agent_health|length }} agents checked
+        </div>
+    </div>
+    
+    {% if result.agent_health %}
+    <div class="overview-card full-width">
+        <h4>🔍 Agent Health Details</h4>
+        <div class="agent-health-grid">
+            {% for agent_id, health in result.agent_health.items() %}
+            <div class="agent-health-item {{ 'healthy' if health == 'healthy' else 'unhealthy' }}">
+                <div class="agent-health-name">{{ agent_id }}</div>
+                <div class="agent-health-status">{{ health }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
