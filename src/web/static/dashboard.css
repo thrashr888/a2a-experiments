@@ -141,7 +141,7 @@ h4 {
 .header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-default);
-    padding: var(--space-6) 0;
+    padding: var(--space-6);
     margin-bottom: var(--space-8);
 }
 

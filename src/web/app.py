@@ -40,33 +40,6 @@ async def get_agents():
 async def get_registry_status():
     return await registry.get_registry_state()
 
-@app.post("/api/orchestrate/{workflow}")
-async def orchestrate_workflow(workflow: str):
-    try:
-        host_client = A2AClient(f"http://{settings.a2a_host}:{settings.a2a_port}")
-        
-        if workflow == "security-check":
-            result = await host_client.call("orchestrate_security_check")
-        elif workflow == "resource-optimization":
-            result = await host_client.call("orchestrate_resource_optimization")
-        elif workflow == "cost-analysis":
-            result = await host_client.call("orchestrate_cost_analysis")
-        elif workflow == "system-overview":
-            result = await host_client.call("get_system_overview")
-        else:
-            return JSONResponse(
-                status_code=400,
-                content={"error": f"Unknown workflow: {workflow}"}
-            )
-        
-        return result
-        
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
-
 @app.get("/api/agent/{agent_id}/call/{method}")
 async def call_agent_method(agent_id: str, method: str):
     try:

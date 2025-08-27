@@ -40,6 +40,22 @@
             </div>
         </div>
         
+        <!-- Agents Grid - Auto-refreshing -->
+        <div hx-get="/api/agents-grid" 
+             hx-trigger="load, every 30s" 
+             hx-swap="innerHTML">
+            <h2>🤖 Active Agents</h2>
+            <div class="agents-grid">
+                <div class="agent-card">
+                    <div class="agent-header">
+                        <div class="agent-name">Loading...</div>
+                        <div class="status-badge">-</div>
+                    </div>
+                    <div class="agent-description">Loading agents...</div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Main Content -->
         <div class="workflows">
             <h2>🚀 Workflows</h2>
@@ -72,22 +88,6 @@
                         hx-indicator="#loading">
                     💰 Cost Analysis
                 </button>
-            </div>
-        </div>
-        
-        <!-- Agents Grid - Auto-refreshing -->
-        <div hx-get="/api/agents-grid" 
-             hx-trigger="load, every 30s" 
-             hx-swap="innerHTML">
-            <h2>🤖 Active Agents</h2>
-            <div class="agents-grid">
-                <div class="agent-card">
-                    <div class="agent-header">
-                        <div class="agent-name">Loading...</div>
-                        <div class="status-badge">-</div>
-                    </div>
-                    <div class="agent-description">Loading agents...</div>
-                </div>
             </div>
         </div>
         
