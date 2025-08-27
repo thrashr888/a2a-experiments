@@ -11,10 +11,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config import settings
-from core.host_agent import HostAgent
-from agents.devops.infrastructure_monitor import InfrastructureMonitorAgent
-from agents.secops.security_monitor import SecurityMonitorAgent
-from agents.finops.cost_monitor import CostMonitorAgent
+from core.host_agent import CoordinatorAgent
+from agents.devops.infrastructure_monitor import DevOpsAgent
+from agents.secops.security_monitor import SecOpsAgent
+from agents.finops.cost_monitor import FinOpsAgent
 
 
 class A2ALabLauncher:
@@ -41,10 +41,10 @@ class A2ALabLauncher:
         
         # Initialize agents
         self.agents = [
-            HostAgent(),
-            InfrastructureMonitorAgent(),
-            SecurityMonitorAgent(),
-            CostMonitorAgent()
+            CoordinatorAgent(),
+            DevOpsAgent(),
+            SecOpsAgent(),
+            FinOpsAgent()
         ]
         
         # Start each agent in a separate task

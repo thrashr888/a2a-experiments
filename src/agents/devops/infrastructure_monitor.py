@@ -1,162 +1,118 @@
+
 import asyncio
+import json
 import psutil
 import shutil
 from typing import Dict, Any, List
 from datetime import datetime
-from utils.a2a_mock import A2AServer
-from core.agent_registry import AgentCard, AgentType, registry
 
+from src.core.agent import AIAgent, AgentTool, A2AMessage
+from src.utils.a2a_mock import A2AServer
+from src.core.config import settings
 
-class InfrastructureMonitorAgent:
+DEVOPS_SYSTEM_PROMPT = """
+You are Alex, a senior DevOps engineer with 10 years of experience in infrastructure management. 
+
+Your expertise includes:
+- System monitoring and alerting
+- Infrastructure automation  
+- Performance optimization
+- Capacity planning
+- Incident response
+
+Your personality: Methodical, detail-oriented, proactive about preventing issues.
+"""
+
+devops_tools = [
+    AgentTool(
+        name="get_system_metrics",
+        description="Get current system resource utilization (CPU, memory, disk).",
+        parameters={"type": "object", "properties": {}}
+    ),
+    AgentTool(
+        name="get_resource_alerts",
+        description="Check for any resource utilization alerts (CPU, memory, disk > 80%).",
+        parameters={"type": "object", "properties": {}}
+    ),
+    AgentTool(
+        name="check_disk_usage",
+        description="Check the disk usage for a specific path.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "The file path to check."}
+            },
+            "required": ["path"]
+        }
+    )
+]
+
+class DevOpsAgent(AIAgent):
     def __init__(self):
-        self.agent_id = "infra-monitor-001"
-        self.agent_card = AgentCard(
-            id=self.agent_id,
-            name="Infrastructure Monitor",
-            description="Monitors system resources, disk usage, and network connectivity",
-            agent_type=AgentType.DEVOPS,
-            capabilities=[
-                "system_metrics",
-                "disk_monitoring",
-                "network_check",
-                "resource_alerts"
-            ],
-            endpoint="http://localhost:8082",
-            metadata={
-                "version": "1.0.0",
-                "author": "A2A Lab",
-                "category": "infrastructure"
-            }
+        super().__init__(
+            agent_id="devops-agent-alex-001",
+            system_prompt=DEVOPS_SYSTEM_PROMPT,
+            tools=devops_tools
         )
-        
-    async def start(self):
-        await registry.register_agent(self.agent_card)
-        server = A2AServer()
-        
-        @server.method("get_system_metrics")
-        async def get_system_metrics() -> Dict[str, Any]:
+
+    async def _execute_tool(self, tool_call) -> Dict[str, Any]:
+        function_name = tool_call.function.name
+        kwargs = json.loads(tool_call.function.arguments)
+        print(f"Executing tool: {function_name} with args: {kwargs}")
+
+        if function_name == "get_system_metrics":
             return await self._get_system_metrics()
-        
-        @server.method("check_disk_usage")
-        async def check_disk_usage(path: str = "/") -> Dict[str, Any]:
-            return await self._check_disk_usage(path)
-        
-        @server.method("get_network_status")
-        async def get_network_status() -> Dict[str, Any]:
-            return await self._get_network_status()
-        
-        @server.method("get_resource_alerts")
-        async def get_resource_alerts() -> List[Dict[str, Any]]:
+        elif function_name == "get_resource_alerts":
             return await self._get_resource_alerts()
-        
-        await server.start(host="0.0.0.0", port=8082)
-    
+        elif function_name == "check_disk_usage":
+            return await self._check_disk_usage(**kwargs)
+        else:
+            return {"error": f"Tool '{function_name}' not found."}
+
     async def _get_system_metrics(self) -> Dict[str, Any]:
+        # Implementation from original InfrastructureMonitorAgent
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
-        
         return {
-            "timestamp": datetime.now().isoformat(),
-            "cpu": {
-                "usage_percent": cpu_percent,
-                "core_count": psutil.cpu_count(),
-                "load_avg": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
-            },
-            "memory": {
-                "total": memory.total,
-                "available": memory.available,
-                "used": memory.used,
-                "percent": memory.percent
-            },
-            "disk": {
-                "total": disk.total,
-                "used": disk.used,
-                "free": disk.free,
-                "percent": (disk.used / disk.total) * 100
-            }
+            "cpu_percent": cpu_percent,
+            "memory_percent": memory.percent,
+            "disk_percent": disk.percent
         }
-    
-    async def _check_disk_usage(self, path: str) -> Dict[str, Any]:
-        try:
-            disk_usage = shutil.disk_usage(path)
-            total, used, free = disk_usage
-            
-            return {
-                "path": path,
-                "total_bytes": total,
-                "used_bytes": used,
-                "free_bytes": free,
-                "used_percent": (used / total) * 100,
-                "free_percent": (free / total) * 100,
-                "status": "critical" if (used / total) > 0.9 else "warning" if (used / total) > 0.8 else "ok"
-            }
-        except Exception as e:
-            return {
-                "path": path,
-                "error": str(e),
-                "status": "error"
-            }
-    
-    async def _get_network_status(self) -> Dict[str, Any]:
-        net_io = psutil.net_io_counters()
-        connections = psutil.net_connections()
-        
-        return {
-            "timestamp": datetime.now().isoformat(),
-            "io_counters": {
-                "bytes_sent": net_io.bytes_sent,
-                "bytes_recv": net_io.bytes_recv,
-                "packets_sent": net_io.packets_sent,
-                "packets_recv": net_io.packets_recv
-            },
-            "active_connections": len([conn for conn in connections if conn.status == "ESTABLISHED"]),
-            "listening_ports": len([conn for conn in connections if conn.status == "LISTEN"])
-        }
-    
+
     async def _get_resource_alerts(self) -> List[Dict[str, Any]]:
+        # Implementation from original InfrastructureMonitorAgent
         alerts = []
-        
-        # CPU alert
         cpu_percent = psutil.cpu_percent(interval=1)
         if cpu_percent > 80:
-            alerts.append({
-                "type": "cpu_high",
-                "severity": "critical" if cpu_percent > 90 else "warning",
-                "message": f"CPU usage is {cpu_percent:.1f}%",
-                "value": cpu_percent,
-                "threshold": 80,
-                "timestamp": datetime.now().isoformat()
-            })
-        
-        # Memory alert
+            alerts.append({"type": "cpu_high", "value": cpu_percent, "severity": "warning"})
         memory = psutil.virtual_memory()
         if memory.percent > 80:
-            alerts.append({
-                "type": "memory_high",
-                "severity": "critical" if memory.percent > 90 else "warning",
-                "message": f"Memory usage is {memory.percent:.1f}%",
-                "value": memory.percent,
-                "threshold": 80,
-                "timestamp": datetime.now().isoformat()
-            })
-        
-        # Disk alert
+            alerts.append({"type": "memory_high", "value": memory.percent, "severity": "warning"})
         disk = psutil.disk_usage('/')
-        disk_percent = (disk.used / disk.total) * 100
-        if disk_percent > 80:
-            alerts.append({
-                "type": "disk_high",
-                "severity": "critical" if disk_percent > 90 else "warning",
-                "message": f"Disk usage is {disk_percent:.1f}%",
-                "value": disk_percent,
-                "threshold": 80,
-                "timestamp": datetime.now().isoformat()
-            })
-        
+        if disk.percent > 80:
+            alerts.append({"type": "disk_high", "value": disk.percent, "severity": "warning"})
         return alerts
 
+    async def _check_disk_usage(self, path: str) -> Dict[str, Any]:
+        # Implementation from original InfrastructureMonitorAgent
+        disk_usage = shutil.disk_usage(path)
+        return {
+            "path": path,
+            "total_bytes": disk_usage.total,
+            "used_bytes": disk_usage.used,
+            "used_percent": (disk_usage.used / disk_usage.total) * 100
+        }
+
+    async def start(self):
+        server = A2AServer()
+        @server.method("process")
+        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
+            message = A2AMessage(**message_data)
+            response = await self.process_message(message)
+            return response.__dict__
+        await server.start(host="0.0.0.0", port=8082) # Port from original agent
 
 if __name__ == "__main__":
-    agent = InfrastructureMonitorAgent()
+    agent = DevOpsAgent()
     asyncio.run(agent.start())

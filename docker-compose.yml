@@ -32,9 +32,32 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Database & Infrastructure
       - DATABASE_URL=postgresql://a2a_user:a2a_password@postgres:5432/a2a_lab
       - REDIS_URL=redis://redis:6379/0
       - PYTHONPATH=/app/src
+      
+      # OpenAI Configuration (from .env file or environment)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5}
+      
+      # A2A Protocol Configuration  
+      - A2A_HOST=${A2A_HOST:-localhost}
+      - A2A_PORT=${A2A_PORT:-8081}
+      
+      # Application Configuration
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8080}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      
+      # AI Agent Configuration
+      - AI_TEMPERATURE=${AI_TEMPERATURE:-0.1}
+      - MAX_TOKENS=${MAX_TOKENS:-2000}
+      - A2A_CONVERSATION_TIMEOUT=${A2A_CONVERSATION_TIMEOUT:-3600}
+      - A2A_MAX_HISTORY_LENGTH=${A2A_MAX_HISTORY_LENGTH:-20}
+      - A2A_ENABLE_REASONING_LOGS=${A2A_ENABLE_REASONING_LOGS:-true}
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy

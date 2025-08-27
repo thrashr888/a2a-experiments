@@ -1,0 +1,153 @@
+# A2A Learning Lab - Agent Development Guide
+
+## Project Overview
+This is an A2A (Agent-to-Agent) learning project focused on multi-agent systems. The current implementation includes both static monitoring agents and AI-powered agents that can reason, communicate, and perform complex tasks.
+
+## Critical Development Instructions
+
+### Python Environment
+- **ALWAYS use `uv`** for running Python scripts: `uv run python <script>`
+- **ALWAYS use `uv add`** for adding dependencies: `uv add <package>`
+- Project uses Python 3.10+ with `uv` for dependency management
+
+### Import Conventions
+- **Use absolute imports from src/**: `from src.core.agent import AIAgent`
+- **Never use relative imports from core**: `from core.agent import AIAgent` ❌
+- **Set PYTHONPATH=src** when needed or run from project root
+- **Module structure**: `src/core/`, `src/agents/`, `src/utils/`, `src/web/`
+
+### Agent Architecture
+
+#### Current Agents Structure
+```
+src/agents/
+├── devops/infrastructure_monitor.py    # System monitoring, performance
+├── secops/security_monitor.py          # Security analysis, threat detection  
+├── finops/cost_monitor.py              # Cost optimization, budget analysis
+└── host/coordinator.py                 # Multi-agent orchestration (TBD)
+```
+
+#### AI Agent Implementation Pattern
+```python
+from src.core.agent import AIAgent, AgentTool, A2AMessage
+from src.core.config import settings
+
+AGENT_SYSTEM_PROMPT = """
+You are [Name], a [role] with expertise in [domain].
+[Detailed personality and expertise description]
+"""
+
+agent_tools = [
+    AgentTool(
+        name="tool_name",
+        description="What this tool does",
+        parameters={"type": "object", "properties": {}}
+    )
+]
+
+class MyAgent(AIAgent):
+    def __init__(self):
+        super().__init__(
+            agent_id="my-agent-001",
+            system_prompt=AGENT_SYSTEM_PROMPT,
+            tools=agent_tools
+        )
+    
+    async def _execute_tool(self, tool_call) -> Dict[str, Any]:
+        # Implement tool execution logic
+        pass
+```
+
+### Agent Personalities & Expertise
+
+#### DevOps Agent (Alex)
+- **Expertise**: Infrastructure, monitoring, performance optimization, capacity planning
+- **Personality**: Methodical, detail-oriented, proactive about preventing issues
+- **Tools**: System metrics, resource alerts, performance analysis
+
+#### SecOps Agent (Jordan)  
+- **Expertise**: Security monitoring, threat detection, vulnerability assessment, incident response
+- **Personality**: Vigilant, thorough, always thinking about potential threats
+- **Tools**: Security logs, failed login detection, vulnerability scans
+
+#### FinOps Agent (Casey)
+- **Expertise**: Cost optimization, budget planning, resource efficiency, ROI analysis
+- **Personality**: Data-driven, business-focused, always looking for savings opportunities  
+- **Tools**: Cost analysis, optimization recommendations, budget projections
+
+#### Coordinator Agent (Sam) - Not yet implemented
+- **Role**: Team lead who coordinates between specialists
+- **Personality**: Strategic thinker, excellent communicator, sees big picture
+- **Capability**: Delegates to appropriate agents, synthesizes responses
+
+### Technology Stack
+- **Backend**: FastAPI with HTMX for server-rendered components
+- **AI**: OpenAI GPT-4 with function calling for tool use
+- **Storage**: Redis for conversation history, PostgreSQL for persistent data
+- **Deployment**: Docker Compose with health checks
+- **Frontend**: Dark theme inspired by HashiCorp/Vercel/Linear
+
+### Development Workflow
+1. **Always test locally first**: `uv run python -m src.agents.{type}.{agent}`
+2. **Use Docker for integration**: `docker compose up app`
+3. **Check imports carefully**: Use `from src.` prefix for all internal imports
+4. **Follow AI agent patterns**: System prompt → Tools → Execute pattern
+5. **Test A2A communication**: Agents should communicate via A2AMessage/A2AResponse
+
+### Key Files
+- `src/core/agent.py` - AI agent base classes and A2A message types
+- `src/core/config.py` - Configuration including OpenAI model settings
+- `src/utils/redis_client.py` - Conversation history management
+- `src/web/app.py` - HTMX endpoints for UI integration
+- `docs/ai-agent-integration.md` - Detailed architecture documentation
+
+### Environment Variables Needed
+```bash
+OPENAI_API_KEY=sk-...           # Required for AI agents
+OPENAI_MODEL=gpt-5 # AI model to use
+REDIS_URL=redis://localhost:6379/0
+DATABASE_URL=postgresql://...
+```
+
+### Common Issues & Solutions
+- **Import errors**: Use `from src.` prefix, not relative imports
+- **Module not found**: Run with `uv run python` from project root
+- **Redis connection**: Ensure Redis container is running
+- **OpenAI API**: Set OPENAI_API_KEY environment variable
+
+### Testing AI Agents
+```bash
+# Test individual agent
+uv run python -m src.agents.finops.cost_monitor
+
+# Test via A2A protocol  
+uv run python -c "
+from src.core.agent import A2AMessage
+from src.agents.finops.cost_monitor import FinOpsAgent
+import asyncio
+
+async def test():
+    agent = FinOpsAgent()
+    msg = A2AMessage('test', agent.agent_id, 'analyze_costs', {}, 'test-conv')
+    response = await agent.process_message(msg)
+    print(response.response)
+
+asyncio.run(test())
+"
+```
+
+### Next Steps for AI Agent Development
+1. **Fix import issues** in existing AI agent implementations
+2. **Implement coordinator agent** for multi-agent orchestration
+3. **Add chat interface** with WebSocket communication
+4. **Test agent-to-agent communication** through coordinator
+5. **Integrate with existing HTMX dashboard**
+
+## Learning Objectives
+This project demonstrates:
+- **Multi-agent communication** via A2A protocol
+- **AI agent reasoning** with tool use and function calling
+- **Specialized agent domains** (DevOps, SecOps, FinOps)
+- **Emergent behavior** through agent collaboration
+- **Human-AI-agent interaction** patterns
+- **Scalable agent architectures** for real-world applications
