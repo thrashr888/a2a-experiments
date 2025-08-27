@@ -1,0 +1,18 @@
+<!-- User Message -->
+<div class="message user-message">
+    <div class="message-header">
+        <span class="message-sender">👤 You</span>
+        <span class="message-time">{{ user_time }}</span>
+    </div>
+    <div class="message-content">{{ user_message | markdown }}</div>
+</div>
+
+<!-- Assistant Message -->
+<div class="message assistant-message">
+    <div class="message-header">
+        <span class="message-sender">🤖 Coordinator Agent</span>
+        <span class="message-time">{{ assistant_time }}</span>
+    </div>
+    <div class="message-content">{{ assistant_response | markdown }}</div>
+</div>
+

@@ -7,9 +7,9 @@ import subprocess
 from typing import Dict, Any, List
 from datetime import datetime, timedelta
 
-from src.core.agent import AIAgent, AgentTool
-from src.utils.a2a_mock import A2AServer
-from src.core.config import settings
+from core.agent import AIAgent, AgentTool, A2AMessage
+from utils.a2a_mock import A2AServer
+from core.config import settings
 
 SECOPS_SYSTEM_PROMPT = """
 You are Jordan, a cybersecurity analyst with expertise in threat detection and incident response.
@@ -138,37 +138,33 @@ class SecOpsAgent(AIAgent):
             alerts.append({"severity": "medium", "type": "failed_logins", "details": "High number of failed logins"})
         return alerts
 
+    async def start(self):
+        server = A2AServer()
+        @server.method("process")
+        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
+            try:
+                # Create proper A2AMessage with defaults for missing fields
+                message = A2AMessage(
+                    sender_id=message_data.get("sender_id", "coordinator"),
+                    receiver_id=self.agent_id,
+                    method=message_data.get("method", "get_security_alerts"),
+                    params=message_data.get("params", {}),
+                    conversation_id=message_data.get("conversation_id", "default-conv")
+                )
+                
+                # Reset the client connections to avoid event loop conflicts
+                self._client = None
+                
+                response = await self.process_message(message)
+                return response.__dict__
+            except Exception as e:
+                print(f"SecOps Agent Error: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
+        await server.start(host="0.0.0.0", port=8083) # Port for SecOps agent
+
 if __name__ == "__main__":
-    from src.core.agent import A2AMessage
     agent = SecOpsAgent()
-    server = A2AServer(agent)
-
-    @server.method("process")
-    async def process(message: Dict[str, Any]) -> Dict[str, Any]:
-        response = await agent.process_message(A2AMessage(**message))
-        return response.__dict__
-
-    # Example of how to call this agent
-    async def main():
-        # In a real scenario, this would be started by the host agent
-        # and listen for A2A calls.
-        print("Starting SecOps Agent server...")
-        # This part is for demonstration and won't actually start a persistent server
-        
-        test_message = A2AMessage(
-            sender_id="test-client",
-            receiver_id=agent.agent_id,
-            method="get_security_alerts",
-            params={},
-            conversation_id="test-conv-secops-123"
-        )
-        
-        print(f"--- Sending test message to {agent.agent_id} ---")
-        response = await agent.process_message(test_message)
-        print("--- Agent Response ---")
-        print(response.response)
-        print("--- Tool Calls ---")
-        print(response.tool_calls)
-
-    asyncio.run(main())
+    asyncio.run(agent.start())
 

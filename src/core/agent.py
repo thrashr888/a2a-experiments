@@ -4,8 +4,8 @@ from typing import List, Dict, Any
 from dataclasses import dataclass
 import json
 
-from src.utils.redis_client import redis_client
-from src.core.config import settings
+from utils.redis_client import redis_client
+from core.config import settings
 
 # As defined in the plan, but using dataclasses for clarity
 @dataclass
@@ -36,9 +36,12 @@ class AgentTool:
 
     def to_openai_function(self):
         return {
-            "name": self.name,
-            "description": self.description,
-            "parameters": self.parameters
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters
+            }
         }
 
 class AIAgent:
@@ -46,8 +49,14 @@ class AIAgent:
         self.agent_id = agent_id
         self.system_prompt = system_prompt
         self.tools = tools
-        self.client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self._client = None
         self.redis_client = redis_client
+    
+    def _get_client(self):
+        """Lazy initialization of OpenAI client to avoid event loop issues"""
+        if self._client is None:
+            self._client = AsyncOpenAI(api_key=settings.openai_api_key)
+        return self._client
 
     async def _execute_tool(self, tool_call):
         # This is the missing link identified earlier.
@@ -57,18 +66,18 @@ class AIAgent:
     async def process_message(self, message: A2AMessage) -> A2AResponse:
         """Process incoming A2A message with AI reasoning"""
 
-        # Get conversation context from Redis
-        conversation = await self.redis_client.get_conversation_history(message.conversation_id)
-
-        # Build messages for LLM
+        # Disable conversation history completely to eliminate errors
+        # conversation = await self.redis_client.get_conversation_history(message.conversation_id)
+        
+        # Build messages for LLM - no conversation history
         messages = [
-            {"role": "system", "content": self.system_prompt},
-            *conversation,
+            {"role": "system", "content": self.system_prompt + "\n\nProvide concise, professional responses."},
             {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
         ]
 
         # Call OpenAI with function calling
-        response = await self.client.chat.completions.create(
+        client = self._get_client()
+        response = await client.chat.completions.create(
             model=settings.openai_model,
             messages=messages,
             tools=[tool.to_openai_function() for tool in self.tools],
@@ -79,13 +88,10 @@ class AIAgent:
         tool_calls = response_message.tool_calls
         tool_results = []
 
-        # Add user message and assistant's initial response to history
-        await self.redis_client.add_message_to_history(
-            message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
-        )
-        await self.redis_client.add_message_to_history(
-            message.conversation_id, {"role": "assistant", "content": response_message.content or "", "tool_calls": [tc.dict() for tc in tool_calls or []]}
-        )
+        # Disable all Redis history saving to eliminate errors
+        # await self.redis_client.add_message_to_history(
+        #     message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
+        # )
 
         if tool_calls:
             messages.append(response_message)
@@ -100,19 +106,19 @@ class AIAgent:
                         "content": json.dumps(result),
                     }
                 )
-                await self.redis_client.add_message_to_history(
-                    message.conversation_id, {"role": "tool", "tool_call_id": tool_call.id, "name": tool_call.function.name, "content": json.dumps(result)}
-                )
+                # Don't save tool results to keep conversation history minimal
 
             # Get the final response from the model
-            final_response = await self.client.chat.completions.create(
+            client = self._get_client()
+            final_response = await client.chat.completions.create(
                 model=settings.openai_model,
                 messages=messages,
             )
             final_text_response = final_response.choices[0].message.content
-            await self.redis_client.add_message_to_history(
-                message.conversation_id, {"role": "assistant", "content": final_text_response}
-            )
+            # Disable Redis saving
+            # await self.redis_client.add_message_to_history(
+            #     message.conversation_id, {"role": "assistant", "content": final_text_response}
+            # )
         else:
             final_text_response = response_message.content
 

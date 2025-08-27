@@ -3,7 +3,7 @@ import redis.asyncio as redis
 import json
 from typing import List, Dict, Any
 
-from src.core.config import settings
+from core.config import settings
 
 class RedisClient:
     """
@@ -13,8 +13,18 @@ class RedisClient:
         """
         Initializes the Redis client and connection pool.
         """
-        self.pool = redis.ConnectionPool.from_url(redis_url, decode_responses=True)
-        self.client = redis.Redis(connection_pool=self.pool)
+        self.redis_url = redis_url
+        self._pool = None
+        self._client = None
+    
+    async def _get_client(self):
+        """
+        Lazy initialization of Redis client to avoid event loop issues.
+        """
+        if self._client is None:
+            self._pool = redis.ConnectionPool.from_url(self.redis_url, decode_responses=True)
+            self._client = redis.Redis(connection_pool=self._pool)
+        return self._client
 
     async def get_conversation_history(self, conversation_id: str) -> List[Dict[str, Any]]:
         """
@@ -26,7 +36,8 @@ class RedisClient:
         Returns:
             A list of message dictionaries, or an empty list if not found.
         """
-        history_json = await self.client.lrange(conversation_id, 0, -1)
+        client = await self._get_client()
+        history_json = await client.lrange(conversation_id, 0, -1)
         return [json.loads(message) for message in reversed(history_json)]
 
     async def add_message_to_history(self, conversation_id: str, message: Dict[str, Any]):
@@ -37,13 +48,15 @@ class RedisClient:
             conversation_id: The unique identifier for the conversation.
             message: The message dictionary to add.
         """
-        await self.client.lpush(conversation_id, json.dumps(message))
+        client = await self._get_client()
+        await client.lpush(conversation_id, json.dumps(message))
 
     async def close(self):
         """
         Closes the Redis connection pool.
         """
-        await self.pool.disconnect()
+        if self._pool:
+            await self._pool.disconnect()
 
 # Global Redis client instance
 redis_client = RedisClient()

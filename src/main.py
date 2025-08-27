@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config import settings
-from core.host_agent import CoordinatorAgent
+# from agents.coordinator.chat_coordinator import start_coordinator_server
 from agents.devops.infrastructure_monitor import DevOpsAgent
 from agents.secops.security_monitor import SecOpsAgent
 from agents.finops.cost_monitor import FinOpsAgent
@@ -41,7 +41,6 @@ class A2ALabLauncher:
         
         # Initialize agents
         self.agents = [
-            CoordinatorAgent(),
             DevOpsAgent(),
             SecOpsAgent(),
             FinOpsAgent()
@@ -99,6 +98,10 @@ class A2ALabLauncher:
             
             # Start agents
             await self.start_agents()
+            
+            # Start coordinator server (disabled for now)
+            # coordinator_task = asyncio.create_task(start_coordinator_server())
+            # self.tasks.append(coordinator_task)
             
             # Start web server
             web_task = asyncio.create_task(self.start_web_server())

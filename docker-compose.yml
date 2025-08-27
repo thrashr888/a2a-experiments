@@ -31,6 +31,9 @@ services:
     build: .
     ports:
       - "8080:8080"
+      - "8082:8082" # DevOps Agent
+      - "8083:8083" # SecOps Agent  
+      - "8084:8084" # FinOps Agent
     environment:
       # Database & Infrastructure
       - DATABASE_URL=postgresql://a2a_user:a2a_password@postgres:5432/a2a_lab

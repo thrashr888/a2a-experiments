@@ -17,12 +17,84 @@
             <p>Multi-Agent System for DevOps, SecOps, and FinOps Operations</p>
         </div>
         
+        <!-- Chat Interface -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>💬 Chat with Coordinator Agent</h2>
+                <button class="clear-chat-btn" 
+                        hx-post="/api/chat/clear" 
+                        hx-target="#chat-messages" 
+                        hx-swap="innerHTML"
+                        hx-confirm="Are you sure you want to clear the chat history?">
+                    🗑️ Clear Chat
+                </button>
+            </div>
+            <div class="chat-window" id="chat-window">
+                <div class="chat-messages" id="chat-messages" 
+                     hx-get="/api/chat/history" 
+                     hx-trigger="load" 
+                     hx-swap="innerHTML scroll:bottom">
+                    <!-- Loading placeholder -->
+                    <div class="welcome-message">
+                        <div class="message assistant-message">
+                            <div class="message-header">
+                                <span class="message-sender">🤖 Coordinator Agent</span>
+                                <span class="message-time">Loading...</span>
+                            </div>
+                            <div class="message-content">Loading chat history...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <form class="chat-form" 
+                      hx-post="/api/chat" 
+                      hx-target="#chat-messages" 
+                      hx-swap="beforeend scroll:bottom"
+                      hx-indicator=".chat-send-btn"
+                      hx-on::after-request="this.reset()"
+                      hx-on::before-request="
+                        const typingDiv = document.createElement('div');
+                        typingDiv.id = 'typing-temp';
+                        typingDiv.innerHTML = `
+                          <div class='message assistant-message typing-indicator'>
+                            <div class='message-header'>
+                              <span class='message-sender'>🤖 Coordinator Agent</span>
+                              <span class='message-time'>thinking...</span>
+                            </div>
+                            <div class='message-content'>
+                              <span class='typing-dots'>
+                                <span>.</span><span>.</span><span>.</span>
+                              </span>
+                            </div>
+                          </div>
+                        `;
+                        document.getElementById('chat-messages').appendChild(typingDiv);
+                        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+                      "
+                      hx-on::after-settle="
+                        const typingEl = document.getElementById('typing-temp');
+                        if (typingEl) typingEl.remove();
+                      ">
+                    <input type="text" 
+                           name="message" 
+                           class="chat-input" 
+                           placeholder="Ask me anything about your systems..."
+                           required
+                           autocomplete="off">
+                    <button type="submit" class="chat-send-btn">
+                        <span class="send-text">Send</span>
+                        <span class="chat-loading-indicator">⏳ Sending...</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
         <!-- Stats Grid - Auto-refreshing -->
         <div class="stats-grid" 
              hx-get="/api/stats" 
              hx-trigger="load, every 10s" 
-             hx-swap="innerHTML"
-             hx-indicator="#stats-refresh">
+             hx-swap="innerHTML">
             <div class="stat-card">
                 <div class="stat-value">-</div>
                 <div class="stat-label">Total Agents</div>
@@ -37,16 +109,15 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value">🟡</div>
-                <div class="stat-label">System Status <span class="refresh-indicator" id="stats-refresh">🔄</span></div>
+                <div class="stat-label">System Status</div>
             </div>
         </div>
         
         <!-- Agents Grid - Auto-refreshing -->
         <div hx-get="/api/agents-grid" 
              hx-trigger="load, every 15s" 
-             hx-swap="innerHTML"
-             hx-indicator="#agents-refresh">
-            <h2>🤖 Active Agents <span class="refresh-indicator">🔄</span></h2>
+             hx-swap="innerHTML">
+            <h2>🤖 Active Agents</h2>
             <div class="agents-grid">
                 <div class="agent-card">
                     <div class="agent-header">
@@ -57,128 +128,9 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Main Content -->
-        <div class="workflows">
-            <h2>🚀 Workflows</h2>
-            <div class="workflow-buttons">
-                <button class="workflow-btn" 
-                        hx-post="/api/orchestrate/system-overview"
-                        hx-target="#results"
-                        hx-swap="innerHTML"
-                        hx-indicator="#loading">
-                    📊 System Overview
-                </button>
-                <button class="workflow-btn" 
-                        hx-post="/api/orchestrate/security-check"
-                        hx-target="#results"
-                        hx-swap="innerHTML"
-                        hx-indicator="#loading">
-                    🔒 Security Check
-                </button>
-                <button class="workflow-btn" 
-                        hx-post="/api/orchestrate/resource-optimization"
-                        hx-target="#results"
-                        hx-swap="innerHTML"
-                        hx-indicator="#loading">
-                    ⚡ Resource Optimization
-                </button>
-                <button class="workflow-btn" 
-                        hx-post="/api/orchestrate/cost-analysis"
-                        hx-target="#results"
-                        hx-swap="innerHTML"
-                        hx-indicator="#loading">
-                    💰 Cost Analysis
-                </button>
-            </div>
-        </div>
-        
-        <!-- Loading Indicator -->
-        <div id="loading" class="htmx-indicator">
-            <div class="loading"></div>
-            Processing...
-        </div>
-        
-        <!-- Results Section -->
-        <div id="results" class="results">
-            <!-- Workflow results will be inserted here -->
-        </div>
+
     </div>
 
-    <style>
-        .htmx-indicator {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-md);
-            padding: var(--space-4);
-            color: var(--text-primary);
-            z-index: 1000;
-            align-items: center;
-            gap: var(--space-2);
-        }
-        
-        .htmx-request .htmx-indicator {
-            display: flex;
-        }
-        
-        .htmx-request button {
-            opacity: 0.6;
-            cursor: wait;
-        }
-        
-        .results {
-            margin-top: var(--space-8);
-        }
-        
-        .results:empty {
-            display: none;
-        }
-        
-        .results:not(:empty) {
-            display: block;
-        }
 
-        .refresh-indicator {
-            opacity: 0.5;
-            font-size: 0.8em;
-            animation: none;
-        }
-        
-        .htmx-request .refresh-indicator {
-            opacity: 1;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .agent-last-seen {
-            font-size: 0.8em;
-            color: var(--text-secondary);
-            margin-top: var(--space-1);
-        }
-        
-        .agent-capabilities {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--space-1);
-            margin-top: var(--space-2);
-        }
-        
-        .capability-badge {
-            background: var(--bg-elevated);
-            color: var(--text-secondary);
-            padding: var(--space-1) var(--space-2);
-            border-radius: var(--radius-sm);
-            font-size: 0.7em;
-            border: 1px solid var(--border-subtle);
-        }
-    </style>
 </body>
 </html>

@@ -4,9 +4,9 @@ import json
 import psutil
 from typing import Dict, Any, List
 
-from src.core.agent import AIAgent, AgentTool
-from src.utils.a2a_mock import A2AServer
-from src.core.config import settings
+from core.agent import AIAgent, AgentTool, A2AMessage
+from utils.a2a_mock import A2AServer
+from core.config import settings
 
 FINOPS_SYSTEM_PROMPT = """
 You are Casey, a FinOps engineer focused on cloud cost optimization and financial accountability.
@@ -99,23 +99,32 @@ class FinOpsAgent(AIAgent):
             "summary": f"Based on current usage, the projected monthly cost is ${round(monthly_projection, 2)}."
         }
 
+    async def start(self):
+        server = A2AServer()
+        @server.method("process")
+        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
+            try:
+                # Create proper A2AMessage with defaults for missing fields
+                message = A2AMessage(
+                    sender_id=message_data.get("sender_id", "coordinator"),
+                    receiver_id=self.agent_id,
+                    method=message_data.get("method", "get_resource_costs"),
+                    params=message_data.get("params", {}),
+                    conversation_id=message_data.get("conversation_id", "default-conv")
+                )
+                
+                # Reset the client connections to avoid event loop conflicts
+                self._client = None
+                
+                response = await self.process_message(message)
+                return response.__dict__
+            except Exception as e:
+                print(f"FinOps Agent Error: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
+        await server.start(host="0.0.0.0", port=8084) # Port from original agent
+
 if __name__ == "__main__":
-    from src.core.agent import A2AMessage
     agent = FinOpsAgent()
-
-    async def main():
-        print(f"--- Sending test message to {agent.agent_id} ---")
-        test_message = A2AMessage(
-            sender_id="test-client",
-            receiver_id=agent.agent_id,
-            method="get_optimization_recommendations",
-            params={},
-            conversation_id="test-conv-finops-123"
-        )
-        response = await agent.process_message(test_message)
-        print("--- Agent Response ---")
-        print(response.response)
-        print("--- Tool Calls ---")
-        print(response.tool_calls)
-
-    asyncio.run(main())
+    asyncio.run(agent.start())

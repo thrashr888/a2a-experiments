@@ -6,9 +6,9 @@ import shutil
 from typing import Dict, Any, List
 from datetime import datetime
 
-from src.core.agent import AIAgent, AgentTool, A2AMessage
-from src.utils.a2a_mock import A2AServer
-from src.core.config import settings
+from core.agent import AIAgent, AgentTool, A2AMessage
+from utils.a2a_mock import A2AServer
+from core.config import settings
 
 DEVOPS_SYSTEM_PROMPT = """
 You are Alex, a senior DevOps engineer with 10 years of experience in infrastructure management. 
@@ -108,9 +108,26 @@ class DevOpsAgent(AIAgent):
         server = A2AServer()
         @server.method("process")
         async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
-            message = A2AMessage(**message_data)
-            response = await self.process_message(message)
-            return response.__dict__
+            try:
+                # Create proper A2AMessage with defaults for missing fields
+                message = A2AMessage(
+                    sender_id=message_data.get("sender_id", "coordinator"),
+                    receiver_id=self.agent_id,
+                    method=message_data.get("method", "get_system_metrics"),
+                    params=message_data.get("params", {}),
+                    conversation_id=message_data.get("conversation_id", "default-conv")
+                )
+                
+                # Reset the client connections to avoid event loop conflicts
+                self._client = None
+                
+                response = await self.process_message(message)
+                return response.__dict__
+            except Exception as e:
+                print(f"DevOps Agent Error: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
         await server.start(host="0.0.0.0", port=8082) # Port from original agent
 
 if __name__ == "__main__":
