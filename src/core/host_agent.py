@@ -54,7 +54,7 @@ class CoordinatorAgent(AIAgent):
             tools=coordinator_tools
         )
 
-    async def _execute_tool(self, tool_call) -> Dict[str, Any]:
+    async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
         function_name = tool_call.function.name
         if function_name == 'delegate_to_agent':
             kwargs = json.loads(tool_call.function.arguments)
@@ -79,7 +79,7 @@ class CoordinatorAgent(AIAgent):
                     receiver_id=target_agent.id,
                     method=task, # Using the task as the method
                     params={},
-                    conversation_id=f"conv-{target_agent.id}-{asyncio.get_running_loop().time()}"
+                    conversation_id=conversation_id # Pass the original conversation_id
                 )
                 response = await client.call("process", message_data=message.__dict__)
                 return response
@@ -98,15 +98,7 @@ class CoordinatorAgent(AIAgent):
         )
         await registry.register_agent(card)
 
-        # Start A2A server
-        server = A2AServer()
-        @server.method("process")
-        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
-            message = A2AMessage(**message_data)
-            response = await self.process_message(message)
-            return response.__dict__
-        await server.start(host=settings.a2a_host, port=settings.a2a_port)
+        # Use the base class start method for the server
+        await super().start(host=settings.a2a_host, port=settings.a2a_port)
 
-if __name__ == "__main__":
-    agent = CoordinatorAgent()
-    asyncio.run(agent.start())
+# To run this agent, use the main entry point at src/main.py

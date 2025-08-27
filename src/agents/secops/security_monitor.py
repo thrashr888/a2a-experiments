@@ -68,7 +68,7 @@ class SecOpsAgent(AIAgent):
         )
         self.log_paths = ["/var/log/auth.log", "/var/log/secure"]
 
-    async def _execute_tool(self, tool_call) -> Dict[str, Any]:
+    async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
         function_name = tool_call.function.name
         kwargs = json.loads(tool_call.function.arguments)
         print(f"Executing tool: {function_name} with args: {kwargs}")
@@ -139,32 +139,7 @@ class SecOpsAgent(AIAgent):
         return alerts
 
     async def start(self):
-        server = A2AServer()
-        @server.method("process")
-        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
-            try:
-                # Create proper A2AMessage with defaults for missing fields
-                message = A2AMessage(
-                    sender_id=message_data.get("sender_id", "coordinator"),
-                    receiver_id=self.agent_id,
-                    method=message_data.get("method", "get_security_alerts"),
-                    params=message_data.get("params", {}),
-                    conversation_id=message_data.get("conversation_id", "default-conv")
-                )
-                
-                # Reset the client connections to avoid event loop conflicts
-                self._client = None
-                
-                response = await self.process_message(message)
-                return response.__dict__
-            except Exception as e:
-                print(f"SecOps Agent Error: {e}")
-                import traceback
-                traceback.print_exc()
-                raise
-        await server.start(host="0.0.0.0", port=8083) # Port for SecOps agent
+        await super().start(host="0.0.0.0", port=8083)
 
-if __name__ == "__main__":
-    agent = SecOpsAgent()
-    asyncio.run(agent.start())
+# To run this agent, use the main entry point at src/main.py
 

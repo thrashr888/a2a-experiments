@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from dataclasses import dataclass
 import json
 
+from utils.a2a_mock import A2AServer
 from utils.redis_client import redis_client
 from core.config import settings
 
@@ -58,7 +59,7 @@ class AIAgent:
             self._client = AsyncOpenAI(api_key=settings.openai_api_key)
         return self._client
 
-    async def _execute_tool(self, tool_call):
+    async def _execute_tool(self, tool_call, conversation_id: str):
         # This is the missing link identified earlier.
         # A concrete agent must implement this method.
         raise NotImplementedError("Agents must implement the _execute_tool method.")
@@ -68,10 +69,12 @@ class AIAgent:
 
         # Disable conversation history completely to eliminate errors
         # conversation = await self.redis_client.get_conversation_history(message.conversation_id)
+        conversation = await self.redis_client.get_conversation_history(message.conversation_id)
         
         # Build messages for LLM - no conversation history
         messages = [
             {"role": "system", "content": self.system_prompt + "\n\nProvide concise, professional responses."},
+            *conversation,
             {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
         ]
 
@@ -89,14 +92,17 @@ class AIAgent:
         tool_results = []
 
         # Disable all Redis history saving to eliminate errors
-        # await self.redis_client.add_message_to_history(
-        #     message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
-        # )
+        await self.redis_client.add_message_to_history(
+            message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
+        )
+        await self.redis_client.add_message_to_history(
+            message.conversation_id, {"role": "assistant", "content": response_message.content or "", "tool_calls": [tc.dict() for tc in tool_calls or []]}
+        )
 
         if tool_calls:
             messages.append(response_message)
             for tool_call in tool_calls:
-                result = await self._execute_tool(tool_call)
+                result = await self._execute_tool(tool_call, message.conversation_id)
                 tool_results.append(result)
                 messages.append(
                     {
@@ -106,7 +112,9 @@ class AIAgent:
                         "content": json.dumps(result),
                     }
                 )
-                # Don't save tool results to keep conversation history minimal
+                await self.redis_client.add_message_to_history(
+                    message.conversation_id, {"role": "tool", "tool_call_id": tool_call.id, "name": tool_call.function.name, "content": json.dumps(result)}
+                )
 
             # Get the final response from the model
             client = self._get_client()
@@ -115,10 +123,9 @@ class AIAgent:
                 messages=messages,
             )
             final_text_response = final_response.choices[0].message.content
-            # Disable Redis saving
-            # await self.redis_client.add_message_to_history(
-            #     message.conversation_id, {"role": "assistant", "content": final_text_response}
-            # )
+            await self.redis_client.add_message_to_history(
+                message.conversation_id, {"role": "assistant", "content": final_text_response}
+            )
         else:
             final_text_response = response_message.content
 
@@ -130,3 +137,16 @@ class AIAgent:
             data={"tool_results": tool_results},
             tool_calls=[tc.function.dict() for tc in tool_calls or []]
         )
+
+    async def start(self, host: str, port: int):
+        """Starts the A2A server for the agent."""
+        server = A2AServer()
+
+        @server.method("process")
+        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
+            message = A2AMessage(**message_data)
+            response = await self.process_message(message)
+            return response.__dict__
+
+        print(f"Starting agent {self.agent_id} on {host}:{port}")
+        await server.start(host=host, port=port)
