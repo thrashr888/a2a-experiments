@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config import settings
+from core.host_agent import CoordinatorAgent
 # from agents.coordinator.chat_coordinator import start_coordinator_server
 from agents.devops.infrastructure_monitor import DevOpsAgent
 from agents.secops.security_monitor import SecOpsAgent
@@ -41,6 +42,7 @@ class A2ALabLauncher:
         
         # Initialize agents
         self.agents = [
+            CoordinatorAgent(),
             DevOpsAgent(),
             SecOpsAgent(),
             FinOpsAgent()
