@@ -20,8 +20,9 @@
         <!-- Stats Grid - Auto-refreshing -->
         <div class="stats-grid" 
              hx-get="/api/stats" 
-             hx-trigger="load, every 30s" 
-             hx-swap="innerHTML">
+             hx-trigger="load, every 10s" 
+             hx-swap="innerHTML"
+             hx-indicator="#stats-refresh">
             <div class="stat-card">
                 <div class="stat-value">-</div>
                 <div class="stat-label">Total Agents</div>
@@ -36,15 +37,16 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value">🟡</div>
-                <div class="stat-label">System Status</div>
+                <div class="stat-label">System Status <span class="refresh-indicator" id="stats-refresh">🔄</span></div>
             </div>
         </div>
         
         <!-- Agents Grid - Auto-refreshing -->
         <div hx-get="/api/agents-grid" 
-             hx-trigger="load, every 30s" 
-             hx-swap="innerHTML">
-            <h2>🤖 Active Agents</h2>
+             hx-trigger="load, every 15s" 
+             hx-swap="innerHTML"
+             hx-indicator="#agents-refresh">
+            <h2>🤖 Active Agents <span class="refresh-indicator">🔄</span></h2>
             <div class="agents-grid">
                 <div class="agent-card">
                     <div class="agent-header">
@@ -138,6 +140,44 @@
         
         .results:not(:empty) {
             display: block;
+        }
+
+        .refresh-indicator {
+            opacity: 0.5;
+            font-size: 0.8em;
+            animation: none;
+        }
+        
+        .htmx-request .refresh-indicator {
+            opacity: 1;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .agent-last-seen {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-top: var(--space-1);
+        }
+        
+        .agent-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-1);
+            margin-top: var(--space-2);
+        }
+        
+        .capability-badge {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            font-size: 0.7em;
+            border: 1px solid var(--border-subtle);
         }
     </style>
 </body>

@@ -1,20 +1,35 @@
-<h2>🤖 Active Agents</h2>
+<h2>🤖 Active Agents <span class="refresh-indicator" id="agents-refresh">🔄</span></h2>
 <div class="agents-grid">
     {% if agents %}
         {% for agent in agents %}
         <div class="agent-card">
             <div class="agent-header">
                 <div class="agent-name">{{ agent.name }}</div>
-                <div class="status-badge {{ agent.status }}">{{ agent.status }}</div>
+                <div class="status-badge {{ agent.status }}">
+                    {% if agent.status == 'online' %}🟢{% elif agent.status == 'busy' %}🟡{% elif agent.status == 'error' %}🔴{% else %}⚫{% endif %}
+                    {{ agent.status }}
+                </div>
             </div>
             <div class="agent-description">{{ agent.description }}</div>
+            {% if agent.last_seen %}
+            <div class="agent-last-seen">
+                Last seen: {{ agent.last_seen[:19] if agent.last_seen else 'Never' }}
+            </div>
+            {% endif %}
+            {% if agent.capabilities %}
+            <div class="agent-capabilities">
+                {% for capability in agent.capabilities %}
+                <span class="capability-badge">{{ capability }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     {% else %}
         <div class="agent-card">
             <div class="agent-header">
                 <div class="agent-name">No agents registered</div>
-                <div class="status-badge offline">offline</div>
+                <div class="status-badge offline">⚫ offline</div>
             </div>
             <div class="agent-description">No agents are currently registered in the system.</div>
         </div>

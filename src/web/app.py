@@ -4,10 +4,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import os
 from pathlib import Path
-from core.agent_registry import registry
-from core.config import settings
-from utils.a2a_mock import A2AClient
+from src.core.agent_registry import registry, AgentStatus
+from src.core.config import settings
+from src.utils.a2a_mock import A2AClient
 from datetime import datetime
+import httpx
+import asyncio
 
 
 app = FastAPI(
@@ -96,11 +98,40 @@ async def get_stats_component(request: Request):
             "system_status": "🔴"
         })
 
+async def check_agent_health(agent):
+    """Check if an agent is responding to health checks"""
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            response = await client.get(f"{agent.endpoint}/health")
+            return response.status_code == 200
+    except:
+        return False
+
 @app.get("/api/agents-grid", response_class=HTMLResponse)
 async def get_agents_grid_component(request: Request):
-    """Get agents grid component for HTMX"""
+    """Get agents grid component for HTMX with real-time health checks"""
     try:
         agents = await registry.list_agents()
+        
+        # Perform health checks on all agents
+        health_tasks = []
+        for agent in agents:
+            if agent.endpoint and agent.status == AgentStatus.ONLINE:
+                health_tasks.append(check_agent_health(agent))
+            else:
+                health_tasks.append(asyncio.create_task(asyncio.sleep(0)))  # dummy task
+        
+        if health_tasks:
+            health_results = await asyncio.gather(*health_tasks, return_exceptions=True)
+            
+            # Update agent statuses based on health checks
+            for i, agent in enumerate(agents):
+                if agent.endpoint and agent.status == AgentStatus.ONLINE:
+                    is_healthy = health_results[i] if i < len(health_results) else False
+                    if not is_healthy:
+                        await registry.update_agent_status(agent.id, AgentStatus.ERROR)
+                        agent.status = AgentStatus.ERROR
+        
         return templates.TemplateResponse("components/agents_grid.html", {
             "request": request,
             "agents": [agent.to_dict() for agent in agents]
