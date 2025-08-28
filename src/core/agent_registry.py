@@ -33,6 +33,8 @@ class AgentCard:
     status: AgentStatus = AgentStatus.OFFLINE
     last_seen: Optional[datetime] = None
     metadata: Dict[str, Any] = None
+    tools: Optional[List[Dict[str, Any]]] = None  # Dynamic tool information
+    security: Optional[Dict[str, Any]] = None    # Security/auth requirements
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)

@@ -37,7 +37,7 @@ Notes
   - Creates an `AgentCard` (from `a2a.types`) describing the agent.
   - Wraps each `AIAgent` in an `AI_AgentExecutor` (adapter in `src/core/agent.py`).
   - Builds a Starlette app via `A2AStarletteApplication` and serves it with Uvicorn.
-  - **NEW**: Adds well-known URI endpoints (`/.well-known/agent-card.json`) for proper A2A agent discovery.
+  - Adds well-known URI endpoints (`/.well-known/agent-card.json`) for proper A2A agent discovery.
   - Ports:
     - DevOps (Alex): `8082`
     - SecOps (Jordan): `8083`
@@ -51,11 +51,11 @@ Notes
   - `system_prompt`: agent persona and domain.
   - `tools`: OpenAI function-call tool specs derived from `AgentTool`.
   - `process_message(A2AMessage)`: runs an LLM chat completion with tools and then executes tool calls via `_execute_tool`.
-  - **NEW**: `request_clarification()`: supports A2A multiturn with `TaskState.input_required`.
-  - **NEW**: `to_a2a_message()`: helper for converting A2A SDK types.
+  - `request_clarification()`: supports A2A multiturn with `TaskState.input_required`.
+  - `to_a2a_message()`: helper for converting A2A SDK types.
 - `AI_AgentExecutor.execute(...)` adapts an incoming A2A `RequestContext` into an `A2AMessage`, calls `agent.process_message`, and emits updates via the A2A event queue.
-  - **NEW**: Sends progressive `TaskStatusUpdateEvent` for streaming progress.
-  - **NEW**: Uses `TaskArtifactUpdateEvent` with `lastChunk=True` for final responses.
+  - Sends progressive `TaskStatusUpdateEvent` for streaming progress.
+  - Uses `TaskArtifactUpdateEvent` with `lastChunk=True` for final responses.
 
 ### 3) Web chat to A2A agents (intelligent routing)
 - `src/web/routes/chat.py` implements proper A2A protocol patterns:
@@ -91,8 +91,9 @@ Steps
   - Open `http://localhost:8080` for the dashboard/chat.
 
 Behavior
-- The launcher starts five A2A services (one per agent) and the web server.
+- The launcher starts six A2A services (one per agent) and the web server.
 - In chat, your message appears once, followed by a single response from the most appropriate specialist agent — proper A2A task delegation.
+- **Note**: For GitOps operations requiring GitHub API access, you'll need to provide your GitHub PAT via Authorization headers (see authentication section above).
 
 ## A2A Message Flow (Chat Path)
 - UI posts to `/api/chat`.
@@ -165,6 +166,51 @@ This Learning Lab demonstrates advanced A2A protocol patterns:
 - **Tool Integration**: MCP tools alongside native A2A capabilities
 - **Fallback Pattern**: Graceful degradation when MCP unavailable
 
+### Enterprise-Ready Authentication
+- **End-User Auth**: Uses HTTP Authorization headers, not host environment tokens
+- **Security Field**: Agent Cards advertise authentication requirements
+- **Token Delegation**: GitHub tokens provided by end-users via Bearer auth
+- **Auth Flow**: Proper 401 responses and input_required states for missing auth
+
+#### How to Provide GitHub Personal Access Token (PAT)
+
+For GitOps operations that require GitHub API access, users need to provide their GitHub PAT via HTTP Authorization headers:
+
+**Option 1: Direct API calls with Bearer token**
+```bash
+curl -X POST http://localhost:8080/api/chat \
+  -H "Authorization: Bearer ghp_your_github_token_here" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "message=Search for repositories with 'python' in the name"
+```
+
+**Option 2: Direct A2A JSON-RPC calls**
+```bash
+curl -X POST http://localhost:8087/ \
+  -H "Authorization: Bearer ghp_your_github_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "messageId": "test-1",
+        "role": "user", 
+        "parts": [{"kind": "text", "text": "Search GitHub for Python repositories"}]
+      }
+    },
+    "id": "1"
+  }'
+```
+
+**Token Requirements:**
+- Personal Access Token (classic) or Fine-grained PAT
+- Required scopes: `repo` (for repository access), `issues` (for issue creation)
+- Generate at: https://github.com/settings/tokens
+
+**Without Authentication:**
+When no token is provided, the GitOps agent will respond with authentication requirements and fallback to basic git operations that don't require GitHub API access.
+
 ## A2A Docs & SDK References
 - A2A protocol topics: agent discovery, extensions, and "life of a task".
 - OpenAI Agents Python SDK: sessions, running agents, multi‑agent patterns, memory, and reasoning items.
@@ -204,7 +250,47 @@ Quick, copy‑paste friendly steps to see the A2A pattern in action.
 - `curl -sS http://localhost:8082/.well-known/agent-card.json` - Get DevOps agent card
 - `curl -sS http://localhost:8083/.well-known/agent-card.json` - Get SecOps agent card
 - `curl -sS http://localhost:8084/.well-known/agent-card.json` - Get FinOps agent card
+- `curl -sS http://localhost:8087/.well-known/agent-card.json` - Get GitOps agent card
+
+7) Test GitHub operations with authentication
+- **With GitHub PAT (recommended for MCP tools):**
+  ```bash
+  curl -X POST http://localhost:8087/ \
+    -H "Authorization: Bearer ghp_your_token_here" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "jsonrpc": "2.0",
+      "method": "message/send", 
+      "params": {
+        "message": {
+          "messageId": "github-test-1",
+          "role": "user",
+          "parts": [{"kind": "text", "text": "Search for Python repositories"}]
+        }
+      },
+      "id": "1"
+    }'
+  ```
+- **Without authentication (basic git operations only):**
+  ```bash
+  curl -X POST http://localhost:8087/ \
+    -H "Content-Type: application/json" \
+    -d '{
+      "jsonrpc": "2.0",
+      "method": "message/send",
+      "params": {
+        "message": {
+          "messageId": "git-test-1", 
+          "role": "user",
+          "parts": [{"kind": "text", "text": "Show git status for /path/to/repo"}]
+        }
+      },
+      "id": "1"
+    }'
+  ```
 
 Troubleshooting
-- Port in use: stop existing processes on 8082–8086/8080 or change ports in `src/core/config.py`.
+- Port in use: stop existing processes on 8082–8087/8080 or change ports in `src/core/config.py`.
 - OpenAI key: ensure the key is exported or present in `.env`.
+- GitHub operations: For MCP-enhanced GitHub API access, provide PAT via Authorization header. Without auth, agent falls back to basic git operations.
+- UI limitations: The current web UI doesn't have a mechanism to input GitHub tokens - use curl commands with Authorization headers for GitHub operations.

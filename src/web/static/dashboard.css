@@ -445,6 +445,7 @@ h2 {
   gap: var(--space-4);
   margin-bottom: var(--space-8);
   width: 100%;
+  align-items: start; /* Cards align to top, height varies by content */
 }
 
 .agent-card {
@@ -456,6 +457,7 @@ h2 {
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+  height: fit-content; /* Card height adjusts to content */
 }
 
 .agent-card:hover {
@@ -694,4 +696,92 @@ h2 {
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Agent Tools Display */
+.agent-tools {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.tools-list {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tool-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+}
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.tool-name {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tool-type-badge {
+  font-size: 0.65em;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tool-type-badge.mcp {
+  background: #e6f3ff;
+  color: #0066cc;
+  border: 1px solid #b3d9ff;
+}
+
+.tool-type-badge.native {
+  background: #f0f9f0;
+  color: #2d6e2d;
+  border: 1px solid #c6e6c6;
+}
+
+.tool-description {
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.tool-service {
+  font-size: 0.7em;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-1);
+}
+
+/* Agent Security Display */
+.agent-security {
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  background: #fff8e6;
+  border: 1px solid #ffd700;
+  border-radius: var(--radius-sm);
+}
+
+.security-info {
+  margin-top: var(--space-1);
+}
+
+.auth-required {
+  font-size: 0.75em;
+  color: #b8860b;
+  font-weight: 500;
 }

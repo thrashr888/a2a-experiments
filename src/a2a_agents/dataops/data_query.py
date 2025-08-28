@@ -138,7 +138,7 @@ class DataOpsAgent(AIAgent):
         first = head[0].upper()
         return first in {"SELECT", "EXPLAIN", "SHOW", "WITH"}
 
-    async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
+    async def _execute_tool(self, tool_call, conversation_id: str, user_auth_token: str = None) -> Dict[str, Any]:
         fname = tool_call.function.name
         args = json.loads(tool_call.function.arguments or "{}")
 

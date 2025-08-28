@@ -51,6 +51,7 @@ def create_agent_card(
         examples=[f"Help me with {tags[0] if tags else 'general tasks'}"],
     )
 
+
     return AgentCard(
         name=name,
         description=description,
@@ -196,7 +197,7 @@ class A2ALabLauncher:
 
             async def agent_card_endpoint(request):
                 """Serve Agent Card at well-known URI for A2A discovery"""
-                return JSONResponse({
+                card_data = {
                     "name": agent_card.name,
                     "description": agent_card.description,
                     "url": agent_card.url,
@@ -215,7 +216,13 @@ class A2ALabLauncher:
                         } for skill in agent_card.skills
                     ] if agent_card.skills else [],
                     "version": agent_card.version,
-                })
+                }
+                
+                # Include security configuration if present (enterprise-ready pattern)
+                if hasattr(agent_card, 'security') and agent_card.security:
+                    card_data["security"] = agent_card.security
+                    
+                return JSONResponse(card_data)
 
             # Add the well-known route
             well_known_route = Route("/.well-known/agent-card.json", agent_card_endpoint)
@@ -228,6 +235,30 @@ class A2ALabLauncher:
                 AgentType,
                 AgentCard as RegistryAgentCard,
             )
+
+            # Extract tool information from the agent for dynamic display
+            agent_tools = []
+            if hasattr(agent, 'tools') and agent.tools:
+                for tool in agent.tools:
+                    tool_info = {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "type": "native"
+                    }
+                    # Mark MCP tools specially
+                    if tool.name.startswith("github_"):
+                        tool_info["type"] = "mcp"
+                        tool_info["service"] = "GitHub MCP Server"
+                    agent_tools.append(tool_info)
+
+            # Add security information for enterprise-ready display  
+            security_info = None
+            if "gitops" in agent_id:
+                security_info = {
+                    "authentication_required": True,
+                    "authentication_methods": ["bearer_token"],
+                    "description": "GitHub personal access token required for API operations"
+                }
 
             # Convert AgentCard to registry format and register
             registry_card = RegistryAgentCard(
@@ -250,6 +281,8 @@ class A2ALabLauncher:
                 capabilities=tags,
                 endpoint=f"http://localhost:{port}",
                 status=AgentStatus.ONLINE,
+                tools=agent_tools,
+                security=security_info,
             )
             await registry.register_agent(registry_card)
             self.logger.info(f"Registered {name} in agent registry")

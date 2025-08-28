@@ -158,7 +158,7 @@ class ContainerOpsAgent(AIAgent):
                 return None
         return self._docker_client
 
-    async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
+    async def _execute_tool(self, tool_call, conversation_id: str, user_auth_token: str = None) -> Dict[str, Any]:
         function_name = tool_call.function.name
         kwargs = (
             json.loads(tool_call.function.arguments)

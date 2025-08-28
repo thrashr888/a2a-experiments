@@ -54,7 +54,7 @@ class DevOpsAgent(AIAgent):
             tools=devops_tools,
         )
 
-    async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
+    async def _execute_tool(self, tool_call, conversation_id: str, user_auth_token: str = None) -> Dict[str, Any]:
         function_name = tool_call.function.name
         kwargs = json.loads(tool_call.function.arguments)
         print(f"Executing tool: {function_name} with args: {kwargs}")

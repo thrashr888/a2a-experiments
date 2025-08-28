@@ -70,7 +70,7 @@ class AIAgent:
             self._client = AsyncOpenAI(api_key=settings.openai_api_key)
         return self._client
 
-    async def _execute_tool(self, tool_call, conversation_id: str):
+    async def _execute_tool(self, tool_call, conversation_id: str, user_auth_token: str = None):
         # A concrete agent must implement this method.
         raise NotImplementedError("Agents must implement the _execute_tool method.")
     
@@ -133,7 +133,7 @@ class AIAgent:
         
         return None
 
-    async def process_message(self, message: A2AMessage) -> A2AResponse:
+    async def process_message(self, message: A2AMessage, user_auth_token: str = None) -> A2AResponse:
         """Process incoming A2A message with AI reasoning"""
         try:
             history_items = await self.session.get_items()
@@ -196,7 +196,7 @@ class AIAgent:
                 messages.append(response_message)
                 for tool_call in tool_calls:
                     result = await self._execute_tool(
-                        tool_call, message.conversation_id
+                        tool_call, message.conversation_id, user_auth_token
                     )
                     tool_results.append(result)
                     messages.append(
@@ -280,6 +280,14 @@ class AI_AgentExecutor(AgentExecutor):
 
         # Convert to our A2AMessage format using helper method
         message = self.agent.to_a2a_message(context)
+        
+        # Extract end-user authentication from HTTP headers (enterprise-ready pattern)
+        user_auth_token = None
+        if context.call_context and hasattr(context.call_context, 'request'):
+            # Look for Authorization: Bearer <token> header
+            auth_header = context.call_context.request.headers.get('authorization', '')
+            if auth_header.startswith('Bearer '):
+                user_auth_token = auth_header[7:]  # Remove 'Bearer ' prefix
 
         # Send initial progress update (A2A streaming pattern)
         from a2a.types import (
@@ -306,8 +314,8 @@ class AI_AgentExecutor(AgentExecutor):
             )
         )
 
-        # Process the message
-        response = await self.agent.process_message(message)
+        # Process the message with end-user authentication
+        response = await self.agent.process_message(message, user_auth_token)
 
         # Send TaskArtifactUpdateEvent with the response (A2A streaming pattern)
         from a2a.types import TaskArtifactUpdateEvent, Artifact, TextArtifact
