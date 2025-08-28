@@ -5,7 +5,7 @@ This is an A2A (Agent-to-Agent) learning project focused on multi-agent systems.
 
 ## Critical Development Instructions
 
-- You MUST stick to A2A protocols.
+- You MUST stick to A2A protocols. The goal here is to learn A2A and not to build a production-ready system.
 - You MUST use the A2A SDK and OpenAI SDK. Defer to A2A in the case of conflict.
 
 ### Python Environment
@@ -14,16 +14,16 @@ This is an A2A (Agent-to-Agent) learning project focused on multi-agent systems.
 - Project uses Python 3.10+ with `uv` for dependency management
 
 ### Import Conventions
-- **Use absolute imports from src/**: `from src.core.agent import AIAgent`
-- **Never use relative imports from core**: `from core.agent import AIAgent` ❌
+- **Use imports from core/**: `from core.agent import AIAgent`
+- **Set PYTHONPATH=src** when running or use `uv run python src/main.py`
 - **Set PYTHONPATH=src** when needed or run from project root
-- **Module structure**: `src/core/`, `src/agents/`, `src/utils/`, `src/web/`
+- **Module structure**: `src/core/`, `src/a2a_agents/`, `src/utils/`, `src/web/`
 
 ### Agent Architecture
 
 #### Current Agents Structure
 ```
-src/agents/
+src/a2a_agents/
 ├── devops/infrastructure_monitor.py    # System monitoring, performance
 ├── secops/security_monitor.py          # Security analysis, threat detection  
 ├── finops/cost_monitor.py              # Cost optimization, budget analysis
@@ -33,8 +33,8 @@ src/agents/
 
 #### AI Agent Implementation Pattern
 ```python
-from src.core.agent import AIAgent, AgentTool, A2AMessage
-from src.core.config import settings
+from core.agent import AIAgent, AgentTool, A2AMessage
+from core.config import settings
 
 AGENT_SYSTEM_PROMPT = """
 You are [Name], a [role] with expertise in [domain].
@@ -79,6 +79,16 @@ class MyAgent(AIAgent):
 - **Personality**: Data-driven, business-focused, always looking for savings opportunities  
 - **Tools**: Cost analysis, optimization recommendations, budget projections
 
+#### Docker Agent (Morgan)
+- **Expertise**: Container management, Docker operations, system monitoring, orchestration
+- **Personality**: Practical, operations-focused, thinks in containers and services
+- **Tools**: Container start/stop/restart, system info, disk usage analysis
+
+#### DataOps Agent (Dana)  
+- **Expertise**: Database queries, schema inspection, data analysis, PostgreSQL operations
+- **Personality**: Analytical, detail-oriented, speaks in queries and data structures
+- **Tools**: Read-only PostgreSQL queries, schema inspection, data analysis
+
 ### Technology Stack
 - **Backend**: FastAPI with HTMX for server-rendered components
 - **AI**: OpenAI GPT-5 with function calling for tool use
@@ -87,7 +97,7 @@ class MyAgent(AIAgent):
 - **Frontend**: Dark theme inspired by HashiCorp/Vercel/Linear
 
 ### Development Workflow
-1. **Always test locally first**: `uv run python -m src.agents.{type}.{agent}`
+1. **Always test locally first**: `uv run python -m a2a_agents.{type}.{agent}`
 2. **Use Docker for integration**: `docker compose up app`
 3. **Check imports carefully**: Use `from src.` prefix for all internal imports
 4. **Follow AI agent patterns**: System prompt → Tools → Execute pattern
@@ -97,7 +107,7 @@ class MyAgent(AIAgent):
 - `src/core/agent.py` - AI agent base classes and A2A message types
 - `src/core/config.py` - Configuration including OpenAI model settings
 - `src/web/app.py` - HTMX endpoints for UI integration
-- `docs/ai-agent-integration.md` - Detailed architecture documentation
+- `docs/a2a-learning-lab-walkthrough.md` - A2A architecture walkthrough
 
 ### Environment Variables Needed
 ```bash
@@ -113,12 +123,12 @@ OPENAI_API_KEY=sk-...           # Required for AI agents
 ### Testing AI Agents
 ```bash
 # Test individual agent
-uv run python -m src.agents.finops.cost_monitor
+uv run python -m a2a_agents.finops.cost_monitor
 
 # Test via A2A protocol  
 uv run python -c "
-from src.core.agent import A2AMessage
-from src.agents.finops.cost_monitor import FinOpsAgent
+from core.agent import A2AMessage
+from a2a_agents.finops.cost_monitor import FinOpsAgent
 import asyncio
 
 async def test():
@@ -131,45 +141,25 @@ asyncio.run(test())
 "
 ```
 
-### A2A Streaming Multiturn Pattern Implementation ✅
+### A2A Task Routing Implementation ✅
 
-#### Current Working Implementation
-- **Multi-Turn Chat**: Each agent contributes individual messages to conversation thread
-- **Streaming Pattern**: Follows A2A protocol for agent-to-agent communication
-- **Working Agents**: DevOps (Alex) and FinOps (Casey) providing real agent responses
-- **Individual Messages**: Each agent sends separate `div.message` - no aggregation
+#### Current Architecture
+- **Intelligent Routing**: AI-powered routing determines single best agent per request
+- **Agent Specialization**: DevOps (Alex), SecOps (Jordan), FinOps (Casey), Docker (Morgan), DataOps (Dana)
+- **Direct Agent Responses**: Each agent speaks for themselves with proper identity
+- **A2A Protocol Compliance**: Follows proper delegation patterns
 
-#### Key Features Implemented
-```python
-# Each agent contributes individually (A2A streaming pattern)
-async def trigger_agent_contributions(conversation_id, user_message, html_parts):
-    agents = [
-        {"name": "🏗️ Infrastructure Monitor (Alex)", "port": 8082, "method": "get_system_metrics"},
-        {"name": "💰 Cost Monitor (Casey)", "port": 8084, "method": "get_resource_costs"}
-    ]
-    
-    # Each agent adds its own separate message
-    for agent in agents:
-        # Call agent -> Get response -> Add individual div.message
-```
+#### Message Flow
+1. **User**: Submits request → Single user message
+2. **A2A Task Router**: Analyzes request → Routes to appropriate specialist agent
+3. **Specialist Agent**: Processes request → Responds directly with expertise
 
-#### Message Flow Example
-1. **User**: "Check system status" → Single user message div
-2. **Alex**: Individual infrastructure analysis → Separate agent message div  
-3. **Casey**: Individual cost analysis → Separate agent message div
-
-#### Requirements for Simplicity
-- **Keep HTML in component templates** (not Python strings)
-- **Focus on learning over complexity**
-- **Maintain A2A protocol patterns**
-- **Individual agent contributions, no aggregation**
-
-### Next Steps for AI Agent Development  
-1. **✅ Implement A2A streaming multiturn pattern** - COMPLETED
-2. **✅ Create individual agent message contributions** - COMPLETED  
-3. **Refactor HTML to component templates** for simplicity
-4. **Add SecOps agent (Jordan)** - currently intermittent
-5. **Enhance agent reasoning** with context awareness
+#### Routing Rules
+- Infrastructure/DevOps/system monitoring → Alex (DevOps Agent)
+- Security/threats/vulnerabilities → Jordan (SecOps Agent)  
+- Costs/budgets/financial optimization → Casey (FinOps Agent)
+- Docker/containers/management → Morgan (Docker Agent)
+- Database/PostgreSQL queries → Dana (DataOps Agent)
 
 ## Learning Objectives
 This project demonstrates:

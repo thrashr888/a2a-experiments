@@ -188,10 +188,6 @@ h2 {
   max-height: 590px;
 }
 
-.welcome-message {
-  /* Container for welcome message */
-}
-
 /* Chat Messages */
 .message {
   margin-bottom: var(--space-4);
@@ -311,9 +307,6 @@ h2 {
 }
 
 /* Chat Input */
-.chat-input-container {
-  /* Container for chat input form */
-}
 
 .chat-form {
   display: flex;
@@ -350,10 +343,6 @@ h2 {
 
 .chat-send-btn:hover {
   background: var(--accent-primary-hover);
-}
-
-.send-text {
-  /* Text inside send button */
 }
 
 .chat-loading-indicator {
