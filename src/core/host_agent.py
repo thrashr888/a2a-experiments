@@ -2,10 +2,10 @@ import asyncio
 import json
 from typing import Dict, Any, List
 
-from src.core.agent import AIAgent, AgentTool, A2AMessage
-from utils.a2a_mock import A2AServer, A2AClient
-from src.core.config import settings
-from src.core.agent_registry import registry, AgentCard, AgentType
+from core.agent import AIAgent, AgentTool, A2AMessage
+# from utils.a2a_mock import A2AServer, A2AClient  # Disabled to avoid dependency issues
+from core.config import settings
+from core.agent_registry import registry, AgentCard, AgentType
 
 COORDINATOR_SYSTEM_PROMPT = """
 You are Sam, the team lead who coordinates between DevOps, SecOps, and FinOps specialists.
@@ -72,17 +72,23 @@ class CoordinatorAgent(AIAgent):
             print(f"Delegating task '{task}' to {target_agent.name} at {target_agent.endpoint}")
 
             try:
-                client = A2AClient(target_agent.endpoint)
-                # The message for the specialist agent is the task itself
-                message = A2AMessage(
-                    sender_id=self.agent_id,
-                    receiver_id=target_agent.id,
-                    method=task, # Using the task as the method
-                    params={},
-                    conversation_id=conversation_id # Pass the original conversation_id
-                )
-                response = await client.call("process", message_data=message.__dict__)
-                return response
+                # Use simple HTTP client instead of A2AClient
+                import httpx
+                async with httpx.AsyncClient() as client:
+                    message = A2AMessage(
+                        sender_id=self.agent_id,
+                        receiver_id=target_agent.id,
+                        method=task, # Using the task as the method
+                        params={},
+                        conversation_id=conversation_id # Pass the original conversation_id
+                    )
+                    response = await client.post(
+                        f"{target_agent.endpoint}/process", 
+                        json=message.__dict__,
+                        timeout=30.0
+                    )
+                    response_data = response.json() if response.status_code == 200 else {"error": "Failed to contact agent"}
+                return response_data
             except Exception as e:
                 print(f"Error delegating to agent: {e}")
                 return {"error": str(e)}

@@ -5,6 +5,9 @@ This is an A2A (Agent-to-Agent) learning project focused on multi-agent systems.
 
 ## Critical Development Instructions
 
+- You MUST stick to A2A protocols.
+- You MUST use the A2A SDK and OpenAI SDK. Defer to A2A in the case of conflict.
+
 ### Python Environment
 - **ALWAYS use `uv`** for running Python scripts: `uv run python <script>`
 - **ALWAYS use `uv add`** for adding dependencies: `uv add <package>`
@@ -104,9 +107,6 @@ class MyAgent(AIAgent):
 ### Environment Variables Needed
 ```bash
 OPENAI_API_KEY=sk-...           # Required for AI agents
-OPENAI_MODEL=gpt-5 # AI model to use
-REDIS_URL=redis://localhost:6379/0
-DATABASE_URL=postgresql://...
 ```
 
 ### Common Issues & Solutions

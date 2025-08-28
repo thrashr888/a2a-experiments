@@ -7,7 +7,7 @@ from openai import AsyncOpenAI
 from core.agent_registry import registry
 from core.config import settings
 from web.utils import safe_template_response
-from utils.redis_client import redis_client
+# from utils.redis_client import redis_client  # Disabled to avoid dependency issues
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
@@ -333,13 +333,13 @@ async def trigger_agent_contributions(conversation_id: str, user_message: str, h
                         )
                         html_parts.append(agent_html)
                         
-                        # Save agent response to Redis
-                        await redis_client.add_message_to_history(conversation_id, {
-                            "role": "assistant",
-                            "content": result["response"],
-                            "agent": agent["name"],
-                            "timestamp": datetime.now().strftime("%H:%M:%S")
-                        })
+                        # Save agent response to Redis (disabled)
+                        # await redis_client.add_message_to_history(conversation_id, {
+                        #     "role": "assistant",
+                        #     "content": result["response"],
+                        #     "agent": agent["name"],
+                        #     "timestamp": datetime.now().strftime("%H:%M:%S")
+                        # })
                     else:
                         # Agent failed - render error with template
                         error_html = await render_agent_error(
@@ -391,12 +391,12 @@ async def chat_with_coordinator(request: Request):
         # Get timestamp for user message
         user_time = datetime.now().strftime("%H:%M:%S")
         
-        # Save user message to Redis
-        await redis_client.add_message_to_history(conversation_id, {
-            "role": "user",
-            "content": user_message,
-            "timestamp": user_time
-        })
+        # Save user message to Redis (disabled)
+        # await redis_client.add_message_to_history(conversation_id, {
+        #     "role": "user",
+        #     "content": user_message,
+        #     "timestamp": user_time
+        # })
         
         # Create HTML for user message using template
         html_parts = []
@@ -430,11 +430,12 @@ async def get_chat_history(request: Request):
     conversation_id = "main_chat"
     
     try:
-        history = await redis_client.get_conversation_history(conversation_id)
-        # Limit history to prevent UI overload
-        if len(history) > 20:
-            history = history[-20:]
-        context = {"messages": history}
+        # history = await redis_client.get_conversation_history(conversation_id)  # Disabled
+        # # Limit history to prevent UI overload
+        # if len(history) > 20:
+        #     history = history[-20:]
+        # context = {"messages": history}
+        context = {"messages": []}  # Empty history for now
     except Exception:
         context = {"messages": []}
     
@@ -446,9 +447,9 @@ async def clear_chat_history(request: Request):
     conversation_id = "main_chat"
     
     try:
-        # Clear the conversation from Redis
-        client = await redis_client._get_client()
-        await client.delete(conversation_id)
+        # Clear the conversation from Redis (disabled)
+        # client = await redis_client._get_client()
+        # await client.delete(conversation_id)
         
         # Return empty chat
         context = {"messages": []}

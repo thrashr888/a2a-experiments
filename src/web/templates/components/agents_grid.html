@@ -1,8 +1,9 @@
-<h2>🤖 Active Agents</h2>
+<h2>🤖 A2A Agent Registry</h2>
 <div class="agents-grid">
     {% if agents %}
         {% for agent in agents %}
         <div class="agent-card">
+            <!-- A2A AgentCard: Basic Identity -->
             <div class="agent-header">
                 <div class="agent-name">{{ agent.name }}</div>
                 <div class="status-badge {{ agent.status }}">
@@ -10,17 +11,49 @@
                     {{ agent.status }}
                 </div>
             </div>
+            
+            <!-- A2A AgentCard: Description & Type -->
             <div class="agent-description">{{ agent.description }}</div>
-            {% if agent.last_seen %}
-            <div class="agent-last-seen">
-                Last seen: {{ agent.last_seen[:19] if agent.last_seen else 'Never' }}
+            <div class="agent-type">
+                <strong>Type:</strong> {{ agent.agent_type.value }}
             </div>
-            {% endif %}
+            
+            <!-- A2A AgentCard: Connectivity -->
+            <div class="agent-connectivity">
+                <div class="agent-endpoint">
+                    <strong>URL:</strong> <code>{{ agent.endpoint }}</code>
+                </div>
+                <div class="agent-id">
+                    <strong>ID:</strong> <code>{{ agent.id }}</code>
+                </div>
+            </div>
+            
+            <!-- A2A AgentCard: I/O Modes (simulated - A2A standard) -->
+            <div class="agent-io-modes">
+                <div class="io-section">
+                    <strong>Input Modes:</strong> <span class="io-mode">text</span>
+                </div>
+                <div class="io-section">
+                    <strong>Output Modes:</strong> <span class="io-mode">text</span>
+                </div>
+            </div>
+            
+            <!-- A2A AgentCard: Skills/Capabilities -->
             {% if agent.capabilities %}
             <div class="agent-capabilities">
-                {% for capability in agent.capabilities %}
-                <span class="capability-badge">{{ capability }}</span>
-                {% endfor %}
+                <strong>Skills:</strong>
+                <div class="capabilities-list">
+                    {% for capability in agent.capabilities %}
+                    <span class="capability-badge">{{ capability }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- A2A AgentCard: Last Contact -->
+            {% if agent.last_seen %}
+            <div class="agent-last-seen">
+                <strong>Last seen:</strong> {{ agent.last_seen[:19] if agent.last_seen else 'Never' }}
             </div>
             {% endif %}
         </div>
@@ -28,10 +61,13 @@
     {% else %}
         <div class="agent-card">
             <div class="agent-header">
-                <div class="agent-name">No agents registered</div>
+                <div class="agent-name">No A2A Agents Registered</div>
                 <div class="status-badge offline">⚫ offline</div>
             </div>
-            <div class="agent-description">No agents are currently registered in the system.</div>
+            <div class="agent-description">No agents are currently registered in the A2A protocol registry.</div>
+            <div class="a2a-note">
+                💡 <em>A2A agents register themselves with AgentCards containing their capabilities, endpoints, and supported I/O modes.</em>
+            </div>
         </div>
     {% endif %}
 </div>

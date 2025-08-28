@@ -4,8 +4,6 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql://a2a_user:a2a_password@localhost:5432/a2a_lab"
-    redis_url: str = "redis://localhost:6379/0"
     openai_model: str = "gpt-5"
     openai_api_key: str = ""
     
@@ -28,6 +26,10 @@ class Settings(BaseSettings):
     
     # Python path setting
     pythonpath: Optional[str] = None
+    
+    # Database persistence
+    data_dir: str = "data"
+    sqlite_db_path: Optional[str] = None  # Will be set to data_dir/agent_sessions.db if None
     
     class Config:
         env_file = ".env"

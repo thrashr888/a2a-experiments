@@ -11,11 +11,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config import settings
+from core.agent import AI_AgentExecutor
 from core.host_agent import CoordinatorAgent
 # from agents.coordinator.chat_coordinator import start_coordinator_server
-from agents.devops.infrastructure_monitor import DevOpsAgent
-from agents.secops.security_monitor import SecOpsAgent
-from agents.finops.cost_monitor import FinOpsAgent
+from a2a_agents.devops.infrastructure_monitor import DevOpsAgent
+from a2a_agents.secops.security_monitor import SecOpsAgent
+from a2a_agents.finops.cost_monitor import FinOpsAgent
+
+from a2a.server.apps import A2AStarletteApplication
+import uvicorn
 
 
 class A2ALabLauncher:
@@ -42,27 +46,39 @@ class A2ALabLauncher:
         
         # Initialize agents
         self.agents = [
-            CoordinatorAgent(),
-            DevOpsAgent(),
-            SecOpsAgent(),
-            FinOpsAgent()
+            (CoordinatorAgent(), settings.a2a_port),
+            (DevOpsAgent(), 8082),
+            (SecOpsAgent(), 8083),
+            (FinOpsAgent(), 8084)
         ]
         
         # Start each agent in a separate task
-        for agent in self.agents:
-            task = asyncio.create_task(self._start_agent_safely(agent))
+        for agent, port in self.agents:
+            task = asyncio.create_task(self._start_agent_safely(agent, port))
             self.tasks.append(task)
             # Small delay to avoid port conflicts
             await asyncio.sleep(1)
         
         self.logger.info(f"Started {len(self.agents)} agents")
     
-    async def _start_agent_safely(self, agent):
+    async def _start_agent_safely(self, agent, port):
         """Start an agent with error handling"""
         try:
             agent_name = agent.__class__.__name__
-            self.logger.info(f"Starting {agent_name}...")
-            await agent.start()
+            self.logger.info(f"Starting {agent_name} on port {port}...")
+            
+            executor = AI_AgentExecutor(agent)
+            app = A2AStarletteApplication(agent_executor=executor)
+            
+            config = uvicorn.Config(
+                app=app,
+                host="0.0.0.0",
+                port=port,
+                log_level=settings.log_level.lower()
+            )
+            server = uvicorn.Server(config)
+            await server.serve()
+
         except Exception as e:
             self.logger.error(f"Failed to start {agent.__class__.__name__}: {e}")
     

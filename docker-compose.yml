@@ -1,58 +1,28 @@
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: a2a_lab
-      POSTGRES_USER: a2a_user
-      POSTGRES_PASSWORD: a2a_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U a2a_user -d a2a_lab"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   app:
     build: .
     ports:
       - "8080:8080"
       - "8082:8082" # DevOps Agent
-      - "8083:8083" # SecOps Agent  
+      - "8083:8083" # SecOps Agent
       - "8084:8084" # FinOps Agent
     environment:
-      # Database & Infrastructure
-      - DATABASE_URL=postgresql://a2a_user:a2a_password@postgres:5432/a2a_lab
-      - REDIS_URL=redis://redis:6379/0
+      # Infrastructure
       - PYTHONPATH=/app/src
-      
+
       # OpenAI Configuration (from .env file or environment)
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5}
-      
-      # A2A Protocol Configuration  
+
+      # A2A Protocol Configuration
       - A2A_HOST=${A2A_HOST:-localhost}
       - A2A_PORT=${A2A_PORT:-8081}
-      
+
       # Application Configuration
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-8080}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      
+
       # AI Agent Configuration
       - AI_TEMPERATURE=${AI_TEMPERATURE:-0.1}
       - MAX_TOKENS=${MAX_TOKENS:-2000}
@@ -61,17 +31,10 @@ services:
       - A2A_ENABLE_REASONING_LOGS=${A2A_ENABLE_REASONING_LOGS:-true}
     env_file:
       - .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
       - ./src:/app/src
-      - ./logs:/app/logs
+      - ~/.local/share/a2a-experiments/logs:/app/logs  # Log persistence
+      - ~/.local/share/a2a-experiments:/app/data  # SQLite database persistence
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
-volumes:
-  postgres_data:
-  redis_data:

@@ -1195,7 +1195,7 @@ h4 {
 .agent-last-seen {
     font-size: 0.8em;
     color: var(--text-secondary);
-    margin-top: var(--space-1);
+    margin-top: var(--space-4);
 }
 
 .agent-capabilities {
@@ -1212,6 +1212,90 @@ h4 {
     border-radius: var(--radius-sm);
     font-size: 0.7em;
     border: 1px solid var(--border-subtle);
+}
+
+/* A2A AgentCard specific styling */
+.agent-type {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+}
+
+.agent-connectivity {
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+}
+
+.agent-endpoint, .agent-id {
+    font-size: 0.8em;
+    margin-bottom: var(--space-2);
+    word-break: break-all;
+}
+
+.agent-endpoint code, .agent-id code {
+    background: var(--bg-elevated);
+    color: var(--brand-primary);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.agent-io-modes {
+    margin: var(--space-3) 0;
+    padding: var(--space-3);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+}
+
+.io-section {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-1);
+}
+
+.io-mode {
+    background: var(--success-subtle);
+    color: var(--success);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.75em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.agent-capabilities strong {
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    display: block;
+    margin-bottom: var(--space-2);
+}
+
+.capabilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+.a2a-note {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    background: var(--warning-subtle);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    font-size: 0.8em;
+    color: var(--text-primary);
+    border-left: 3px solid var(--warning);
+}
+
+.a2a-note em {
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 /* Chat Interface Styles */

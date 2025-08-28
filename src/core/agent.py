@@ -4,8 +4,10 @@ from typing import List, Dict, Any
 from dataclasses import dataclass
 import json
 
-from utils.a2a_mock import A2AServer
-from utils.redis_client import redis_client
+from a2a.server.agent_execution import AgentExecutor
+from a2a.server.events import EventQueue
+from a2a.server.agent_execution.context import RequestContext
+from agents.memory.session import SQLiteSession
 from core.config import settings
 
 # As defined in the plan, but using dataclasses for clarity
@@ -51,7 +53,11 @@ class AIAgent:
         self.system_prompt = system_prompt
         self.tools = tools
         self._client = None
-        self.redis_client = redis_client
+        import os
+        # Ensure data directory exists
+        os.makedirs(settings.data_dir, exist_ok=True)
+        db_path = os.path.join(settings.data_dir, f"{agent_id}_session.db")
+        self.session = SQLiteSession(session_id=agent_id, db_path=db_path)
     
     def _get_client(self):
         """Lazy initialization of OpenAI client to avoid event loop issues"""
@@ -67,18 +73,19 @@ class AIAgent:
     async def process_message(self, message: A2AMessage) -> A2AResponse:
         """Process incoming A2A message with AI reasoning"""
         try:
-            # Disable conversation history completely to eliminate errors
-            # conversation = await self.redis_client.get_conversation_history(message.conversation_id)
-            conversation = await self.redis_client.get_conversation_history(message.conversation_id)
+            history_items = await self.session.get_items()
+            # Convert history items to OpenAI format
+            history = [{"role": item.get("role", "user"), "content": item.get("content", "")} for item in history_items]
             
-            # Build messages for LLM - no conversation history
+            user_message_content = f"Method: {message.method}, Params: {json.dumps(message.params)}"
+            await self.session.add_items([{"role": "user", "content": user_message_content}])
+            
             messages = [
                 {"role": "system", "content": self.system_prompt + "\n\nProvide concise, professional responses."},
-                *conversation,
-                {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
+                *history,
+                {"role": "user", "content": user_message_content}
             ]
 
-            # Call OpenAI with function calling
             client = self._get_client()
             response = await client.chat.completions.create(
                 model=settings.openai_model,
@@ -91,13 +98,11 @@ class AIAgent:
             tool_calls = response_message.tool_calls
             tool_results = []
 
-            # Disable all Redis history saving to eliminate errors
-            await self.redis_client.add_message_to_history(
-                message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
-            )
-            await self.redis_client.add_message_to_history(
-                message.conversation_id, {"role": "assistant", "content": response_message.content or "", "tool_calls": [tc.dict() for tc in tool_calls or []]}
-            )
+            await self.session.add_items([{
+                "role": "assistant", 
+                "content": response_message.content or "", 
+                "tool_calls": [tc.dict() for tc in tool_calls or []]
+            }])
 
             if tool_calls:
                 messages.append(response_message)
@@ -112,20 +117,19 @@ class AIAgent:
                             "content": json.dumps(result),
                         }
                     )
-                    await self.redis_client.add_message_to_history(
-                        message.conversation_id, {"role": "tool", "tool_call_id": tool_call.id, "name": tool_call.function.name, "content": json.dumps(result)}
-                    )
+                    await self.session.add_items([{
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(result)
+                    }])
 
-                # Get the final response from the model
                 client = self._get_client()
                 final_response = await client.chat.completions.create(
                     model=settings.openai_model,
                     messages=messages,
                 )
                 final_text_response = final_response.choices[0].message.content
-                await self.redis_client.add_message_to_history(
-                    message.conversation_id, {"role": "assistant", "content": final_text_response}
-                )
+                await self.session.add_items([{"role": "assistant", "content": final_text_response}])
             else:
                 final_text_response = response_message.content
 
@@ -139,8 +143,7 @@ class AIAgent:
             )
         except Exception as e:
             import traceback
-            print(f"Error processing message: {e}
-{traceback.format_exc()}")
+            print(f"Error processing message: {e}\n{traceback.format_exc()}")
             return A2AResponse(
                 sender_id=self.agent_id,
                 receiver_id=message.sender_id,
@@ -149,79 +152,41 @@ class AIAgent:
                 data={"error": True, "details": traceback.format_exc()},
                 confidence=0.0
             )
-            *conversation,
-            {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
-        ]
 
-        # Call OpenAI with function calling
-        client = self._get_client()
-        response = await client.chat.completions.create(
-            model=settings.openai_model,
-            messages=messages,
-            tools=[tool.to_openai_function() for tool in self.tools],
-            tool_choice="auto"
+
+
+class AI_AgentExecutor(AgentExecutor):
+    def __init__(self, agent: AIAgent):
+        self.agent = agent
+
+    async def execute(self, context: RequestContext, event_queue: EventQueue):
+        """Execute agent request using A2A protocol"""
+        # Extract message data from context
+        message_data = context.task.input_messages[0] if context.task.input_messages else {}
+        
+        # Convert to our A2AMessage format
+        message = A2AMessage(
+            sender_id=context.call_context.user.id if hasattr(context.call_context.user, 'id') else "client",
+            receiver_id=self.agent.agent_id,
+            method=message_data.get('method', 'process'),
+            params=message_data.get('params', {}),
+            conversation_id=context.task.id
         )
-
-        response_message = response.choices[0].message
-        tool_calls = response_message.tool_calls
-        tool_results = []
-
-        # Disable all Redis history saving to eliminate errors
-        await self.redis_client.add_message_to_history(
-            message.conversation_id, {"role": "user", "content": f"Method: {message.method}, Params: {json.dumps(message.params)}"}
-        )
-        await self.redis_client.add_message_to_history(
-            message.conversation_id, {"role": "assistant", "content": response_message.content or "", "tool_calls": [tc.dict() for tc in tool_calls or []]}
-        )
-
-        if tool_calls:
-            messages.append(response_message)
-            for tool_call in tool_calls:
-                result = await self._execute_tool(tool_call, message.conversation_id)
-                tool_results.append(result)
-                messages.append(
-                    {
-                        "tool_call_id": tool_call.id,
-                        "role": "tool",
-                        "name": tool_call.function.name,
-                        "content": json.dumps(result),
-                    }
-                )
-                await self.redis_client.add_message_to_history(
-                    message.conversation_id, {"role": "tool", "tool_call_id": tool_call.id, "name": tool_call.function.name, "content": json.dumps(result)}
-                )
-
-            # Get the final response from the model
-            client = self._get_client()
-            final_response = await client.chat.completions.create(
-                model=settings.openai_model,
-                messages=messages,
+        
+        # Process the message
+        response = await self.agent.process_message(message)
+        
+        # Put result in event queue
+        from a2a.server.events import TaskStatusUpdateEvent
+        await event_queue.put(
+            TaskStatusUpdateEvent(
+                task_id=context.task.id,
+                status="completed",
+                output=response.__dict__,
             )
-            final_text_response = final_response.choices[0].message.content
-            await self.redis_client.add_message_to_history(
-                message.conversation_id, {"role": "assistant", "content": final_text_response}
-            )
-        else:
-            final_text_response = response_message.content
-
-        return A2AResponse(
-            sender_id=self.agent_id,
-            receiver_id=message.sender_id,
-            conversation_id=message.conversation_id,
-            response=final_text_response,
-            data={"tool_results": tool_results},
-            tool_calls=[tc.function.dict() for tc in tool_calls or []]
         )
-
-    async def start(self, host: str, port: int):
-        """Starts the A2A server for the agent."""
-        server = A2AServer()
-
-        @server.method("process")
-        async def process_message_endpoint(message_data: Dict[str, Any]) -> Dict[str, Any]:
-            message = A2AMessage(**message_data)
-            response = await self.process_message(message)
-            return response.__dict__
-
-        print(f"Starting agent {self.agent_id} on {host}:{port}")
-        await server.start(host=host, port=port)
+    
+    async def cancel(self):
+        """Cancel any running operations (required by AgentExecutor interface)"""
+        # For now, we don't have any cancellable operations
+        pass
