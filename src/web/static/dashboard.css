@@ -1479,9 +1479,6 @@ h4 {
     font-weight: 600;
 }
 
-.chat-input-container {
-}
-
 .chat-form {
     display: flex;
     gap: var(--space-2);
