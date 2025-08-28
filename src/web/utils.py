@@ -7,9 +7,10 @@ from pathlib import Path
 import markdown
 from markupsafe import Markup
 
-# Shared template instance 
+# Shared template instance
 templates_path = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(templates_path))
+
 
 # Add markdown filter to templates
 def markdown_filter(text):
@@ -17,16 +18,18 @@ def markdown_filter(text):
     if not text:
         return ""
     # Configure markdown with safe extensions
-    md = markdown.Markdown(extensions=['nl2br', 'fenced_code', 'tables'])
+    md = markdown.Markdown(extensions=["nl2br", "fenced_code", "tables"])
     return Markup(md.convert(text))
 
-templates.env.filters['markdown'] = markdown_filter
+
+templates.env.filters["markdown"] = markdown_filter
+
 
 def safe_template_response(
     template_name: str,
     request: Request,
     context: dict = None,
-    fallback_context: dict = None
+    fallback_context: dict = None,
 ) -> HTMLResponse:
     """Safely render template with fallback error handling"""
     try:

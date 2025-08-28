@@ -1,4 +1,3 @@
-
 import asyncio
 import json
 import psutil
@@ -27,12 +26,12 @@ devops_tools = [
     AgentTool(
         name="get_system_metrics",
         description="Get current system resource utilization (CPU, memory, disk).",
-        parameters={"type": "object", "properties": {}}
+        parameters={"type": "object", "properties": {}},
     ),
     AgentTool(
         name="get_resource_alerts",
         description="Check for any resource utilization alerts (CPU, memory, disk > 80%).",
-        parameters={"type": "object", "properties": {}}
+        parameters={"type": "object", "properties": {}},
     ),
     AgentTool(
         name="check_disk_usage",
@@ -42,17 +41,18 @@ devops_tools = [
             "properties": {
                 "path": {"type": "string", "description": "The file path to check."}
             },
-            "required": ["path"]
-        }
-    )
+            "required": ["path"],
+        },
+    ),
 ]
+
 
 class DevOpsAgent(AIAgent):
     def __init__(self):
         super().__init__(
             agent_id="devops-agent-alex-001",
             system_prompt=DEVOPS_SYSTEM_PROMPT,
-            tools=devops_tools
+            tools=devops_tools,
         )
 
     async def _execute_tool(self, tool_call, conversation_id: str) -> Dict[str, Any]:
@@ -73,11 +73,11 @@ class DevOpsAgent(AIAgent):
         # Implementation from original InfrastructureMonitorAgent
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         return {
             "cpu_percent": cpu_percent,
             "memory_percent": memory.percent,
-            "disk_percent": disk.percent
+            "disk_percent": disk.percent,
         }
 
     async def _get_resource_alerts(self) -> List[Dict[str, Any]]:
@@ -85,13 +85,19 @@ class DevOpsAgent(AIAgent):
         alerts = []
         cpu_percent = psutil.cpu_percent(interval=1)
         if cpu_percent > 80:
-            alerts.append({"type": "cpu_high", "value": cpu_percent, "severity": "warning"})
+            alerts.append(
+                {"type": "cpu_high", "value": cpu_percent, "severity": "warning"}
+            )
         memory = psutil.virtual_memory()
         if memory.percent > 80:
-            alerts.append({"type": "memory_high", "value": memory.percent, "severity": "warning"})
-        disk = psutil.disk_usage('/')
+            alerts.append(
+                {"type": "memory_high", "value": memory.percent, "severity": "warning"}
+            )
+        disk = psutil.disk_usage("/")
         if disk.percent > 80:
-            alerts.append({"type": "disk_high", "value": disk.percent, "severity": "warning"})
+            alerts.append(
+                {"type": "disk_high", "value": disk.percent, "severity": "warning"}
+            )
         return alerts
 
     async def _check_disk_usage(self, path: str) -> Dict[str, Any]:
@@ -102,16 +108,17 @@ class DevOpsAgent(AIAgent):
                 "path": path,
                 "total_bytes": disk_usage.total,
                 "used_bytes": disk_usage.used,
-                "used_percent": (disk_usage.used / disk_usage.total) * 100
+                "used_percent": (disk_usage.used / disk_usage.total) * 100,
             }
         except FileNotFoundError:
             return {
                 "path": path,
                 "error": f"Path '{path}' not found or not accessible in containerized environment",
-                "suggestion": "Use '/' for root filesystem or '/app' for application directory"
+                "suggestion": "Use '/' for root filesystem or '/app' for application directory",
             }
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8082)
+
 
 # To run this agent, use the main entry point at src/main.py

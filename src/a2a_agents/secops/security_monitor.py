@@ -1,4 +1,3 @@
-
 import asyncio
 import json
 import re
@@ -37,34 +36,38 @@ secops_tools = [
         parameters={
             "type": "object",
             "properties": {
-                "hours": {"type": "integer", "description": "The number of hours back to scan."}
+                "hours": {
+                    "type": "integer",
+                    "description": "The number of hours back to scan.",
+                }
             },
-            "required": ["hours"]
-        }
+            "required": ["hours"],
+        },
     ),
     AgentTool(
         name="check_suspicious_processes",
         description="Check for running processes with names matching common hacking tools.",
-        parameters={"type": "object", "properties": {}}
+        parameters={"type": "object", "properties": {}},
     ),
     AgentTool(
         name="scan_network_connections",
         description="Scan for active network connections and unusual listening ports.",
-        parameters={"type": "object", "properties": {}}
+        parameters={"type": "object", "properties": {}},
     ),
     AgentTool(
         name="get_security_alerts",
         description="Get a summary of all security alerts based on various checks.",
-        parameters={"type": "object", "properties": {}}
-    )
+        parameters={"type": "object", "properties": {}},
+    ),
 ]
+
 
 class SecOpsAgent(AIAgent):
     def __init__(self):
         super().__init__(
             agent_id="secops-agent-jordan-001",
             system_prompt=SECOPS_SYSTEM_PROMPT,
-            tools=secops_tools
+            tools=secops_tools,
         )
         self.log_paths = ["/var/log/auth.log", "/var/log/secure"]
 
@@ -91,13 +94,13 @@ class SecOpsAgent(AIAgent):
         patterns = [
             r"Failed password for (\w+) from ([\d\.]+)",
             r"Invalid user (\w+) from ([\d\.]+)",
-            r"authentication failure.*user=(\w+).*rhost=([\d\.]+)"
+            r"authentication failure.*user=(\w+).*rhost=([\d\.]+)",
         ]
         for log_path in self.log_paths:
             if not os.path.exists(log_path):
                 continue
             try:
-                with open(log_path, 'r') as f:
+                with open(log_path, "r") as f:
                     # This is a simplified implementation for the lab
                     pass
             except Exception as e:
@@ -107,18 +110,20 @@ class SecOpsAgent(AIAgent):
             "scan_period_hours": hours,
             "total_failed_attempts": 25,
             "unique_ips": 5,
-            "summary": f"Found 25 failed login attempts from 5 unique IPs in the last {hours} hours."
+            "summary": f"Found 25 failed login attempts from 5 unique IPs in the last {hours} hours.",
         }
 
     async def _check_suspicious_processes(self) -> List[Dict[str, Any]]:
         # Mock data for demonstration
-        return [{
-            "pid": "12345",
-            "command": "nc -l -p 1337",
-            "user": "root",
-            "detected_pattern": "nc",
-            "summary": "Found a netcat process listening on a high port, which is suspicious."
-        }]
+        return [
+            {
+                "pid": "12345",
+                "command": "nc -l -p 1337",
+                "user": "root",
+                "detected_pattern": "nc",
+                "summary": "Found a netcat process listening on a high port, which is suspicious.",
+            }
+        ]
 
     async def _scan_network_connections(self) -> Dict[str, Any]:
         # Mock data for demonstration
@@ -127,19 +132,31 @@ class SecOpsAgent(AIAgent):
             "unusual_listening_ports": [
                 {"protocol": "tcp", "address": "0.0.0.0:1337", "port": "1337"}
             ],
-            "summary": "Found 15 listening ports, one of which (1337) is unusual and associated with the suspicious netcat process."
+            "summary": "Found 15 listening ports, one of which (1337) is unusual and associated with the suspicious netcat process.",
         }
 
     async def _get_security_alerts(self) -> List[Dict[str, Any]]:
         alerts = []
-        if (await self._check_suspicious_processes()):
-            alerts.append({"severity": "high", "type": "suspicious_process", "details": "Found netcat process"})
+        if await self._check_suspicious_processes():
+            alerts.append(
+                {
+                    "severity": "high",
+                    "type": "suspicious_process",
+                    "details": "Found netcat process",
+                }
+            )
         if (await self._scan_failed_logins(1))["total_failed_attempts"] > 10:
-            alerts.append({"severity": "medium", "type": "failed_logins", "details": "High number of failed logins"})
+            alerts.append(
+                {
+                    "severity": "medium",
+                    "type": "failed_logins",
+                    "details": "High number of failed logins",
+                }
+            )
         return alerts
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8083)
 
-# To run this agent, use the main entry point at src/main.py
 
+# To run this agent, use the main entry point at src/main.py

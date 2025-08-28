@@ -6,6 +6,7 @@ import asyncio
 
 router = APIRouter(prefix="/api", tags=["api"])
 
+
 @router.get("/stats", response_class=HTMLResponse)
 async def get_stats_component(request: Request):
     """Get stats grid component for HTMX"""
@@ -13,7 +14,7 @@ async def get_stats_component(request: Request):
         registry_status = await registry.get_registry_state()
         total_agents = registry_status.get("total_agents", 0)
         online_agents = registry_status.get("agents_by_status", {}).get("online", 0)
-        
+
         # System status logic
         if total_agents == 0:
             system_status = "🔴"
@@ -23,24 +24,25 @@ async def get_stats_component(request: Request):
             system_status = "🟡"
         else:
             system_status = "🔴"
-        
+
         context = {
             "total_agents": total_agents,
             "online_agents": online_agents,
             "workflows_run": 0,  # TODO: Track this in session/database
-            "system_status": system_status
+            "system_status": system_status,
         }
     except Exception:
         context = None
-    
+
     fallback = {
         "total_agents": 0,
         "online_agents": 0,
         "workflows_run": 0,
-        "system_status": "🔴"
+        "system_status": "🔴",
     }
-    
+
     return safe_template_response("components/stats.html", request, context, fallback)
+
 
 @router.get("/agents-grid", response_class=HTMLResponse)
 async def get_agents_grid_component(request: Request):
@@ -50,6 +52,8 @@ async def get_agents_grid_component(request: Request):
         context = {"agents": [agent.to_dict() for agent in agents]}
     except Exception:
         context = None
-    
+
     fallback = {"agents": []}
-    return safe_template_response("components/agents_grid.html", request, context, fallback)
+    return safe_template_response(
+        "components/agents_grid.html", request, context, fallback
+    )

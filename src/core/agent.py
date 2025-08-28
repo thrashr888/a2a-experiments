@@ -1,4 +1,3 @@
-
 from openai import AsyncOpenAI
 from typing import List, Dict, Any
 from dataclasses import dataclass
@@ -9,6 +8,7 @@ from a2a.server.events import EventQueue
 from a2a.server.agent_execution.context import RequestContext
 from agents.memory.session import SQLiteSession
 from core.config import settings
+
 
 # As defined in the plan, but using dataclasses for clarity
 @dataclass
@@ -21,6 +21,7 @@ class A2AMessage:
     context: Dict[str, Any] = None
     requires_reasoning: bool = True
 
+
 @dataclass
 class A2AResponse:
     sender_id: str
@@ -30,6 +31,7 @@ class A2AResponse:
     data: Dict[str, Any] = None
     tool_calls: List[Dict] = None
     confidence: float = 1.0
+
 
 class AgentTool:
     def __init__(self, name: str, description: str, parameters: Dict):
@@ -43,9 +45,10 @@ class AgentTool:
             "function": {
                 "name": self.name,
                 "description": self.description,
-                "parameters": self.parameters
-            }
+                "parameters": self.parameters,
+            },
         }
+
 
 class AIAgent:
     def __init__(self, agent_id: str, system_prompt: str, tools: List[AgentTool]):
@@ -54,11 +57,12 @@ class AIAgent:
         self.tools = tools
         self._client = None
         import os
+
         # Ensure data directory exists
         os.makedirs(settings.data_dir, exist_ok=True)
         db_path = os.path.join(settings.data_dir, f"{agent_id}_session.db")
         self.session = SQLiteSession(session_id=agent_id, db_path=db_path)
-    
+
     def _get_client(self):
         """Lazy initialization of OpenAI client to avoid event loop issues"""
         if self._client is None:
@@ -77,7 +81,10 @@ class AIAgent:
             # Convert history items to OpenAI format, preserving tool_calls and tool_call_id
             history = []
             for item in history_items:
-                msg = {"role": item.get("role", "user"), "content": item.get("content", "")}
+                msg = {
+                    "role": item.get("role", "user"),
+                    "content": item.get("content", ""),
+                }
                 # Preserve tool_calls for assistant messages
                 if item.get("tool_calls"):
                     msg["tool_calls"] = item["tool_calls"]
@@ -86,14 +93,22 @@ class AIAgent:
                     msg["tool_call_id"] = item["tool_call_id"]
                     msg["name"] = item.get("name", "unknown_tool")
                 history.append(msg)
-            
-            user_message_content = f"Method: {message.method}, Params: {json.dumps(message.params)}"
-            await self.session.add_items([{"role": "user", "content": user_message_content}])
-            
+
+            user_message_content = (
+                f"Method: {message.method}, Params: {json.dumps(message.params)}"
+            )
+            await self.session.add_items(
+                [{"role": "user", "content": user_message_content}]
+            )
+
             messages = [
-                {"role": "system", "content": self.system_prompt + "\n\nProvide concise, professional responses."},
+                {
+                    "role": "system",
+                    "content": self.system_prompt
+                    + "\n\nProvide concise, professional responses.",
+                },
                 *history,
-                {"role": "user", "content": user_message_content}
+                {"role": "user", "content": user_message_content},
             ]
 
             client = self._get_client()
@@ -101,23 +116,29 @@ class AIAgent:
                 model=settings.openai_model,
                 messages=messages,
                 tools=[tool.to_openai_function() for tool in self.tools],
-                tool_choice="auto"
+                tool_choice="auto",
             )
 
             response_message = response.choices[0].message
             tool_calls = response_message.tool_calls
             tool_results = []
 
-            await self.session.add_items([{
-                "role": "assistant", 
-                "content": response_message.content or "", 
-                "tool_calls": [tc.dict() for tc in tool_calls or []]
-            }])
+            await self.session.add_items(
+                [
+                    {
+                        "role": "assistant",
+                        "content": response_message.content or "",
+                        "tool_calls": [tc.dict() for tc in tool_calls or []],
+                    }
+                ]
+            )
 
             if tool_calls:
                 messages.append(response_message)
                 for tool_call in tool_calls:
-                    result = await self._execute_tool(tool_call, message.conversation_id)
+                    result = await self._execute_tool(
+                        tool_call, message.conversation_id
+                    )
                     tool_results.append(result)
                     messages.append(
                         {
@@ -127,12 +148,16 @@ class AIAgent:
                             "content": json.dumps(result),
                         }
                     )
-                    await self.session.add_items([{
-                        "role": "tool",
-                        "tool_call_id": tool_call.id,
-                        "name": tool_call.function.name,
-                        "content": json.dumps(result)
-                    }])
+                    await self.session.add_items(
+                        [
+                            {
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": tool_call.function.name,
+                                "content": json.dumps(result),
+                            }
+                        ]
+                    )
 
                 client = self._get_client()
                 final_response = await client.chat.completions.create(
@@ -140,7 +165,9 @@ class AIAgent:
                     messages=messages,
                 )
                 final_text_response = final_response.choices[0].message.content
-                await self.session.add_items([{"role": "assistant", "content": final_text_response}])
+                await self.session.add_items(
+                    [{"role": "assistant", "content": final_text_response}]
+                )
             else:
                 final_text_response = response_message.content
 
@@ -150,10 +177,11 @@ class AIAgent:
                 conversation_id=message.conversation_id,
                 response=final_text_response,
                 data={"tool_results": tool_results},
-                tool_calls=[tc.function.dict() for tc in tool_calls or []]
+                tool_calls=[tc.function.dict() for tc in tool_calls or []],
             )
         except Exception as e:
             import traceback
+
             print(f"Error processing message: {e}\n{traceback.format_exc()}")
             return A2AResponse(
                 sender_id=self.agent_id,
@@ -161,9 +189,8 @@ class AIAgent:
                 conversation_id=message.conversation_id,
                 response=f"An internal error occurred: {e}",
                 data={"error": True, "details": traceback.format_exc()},
-                confidence=0.0
+                confidence=0.0,
             )
-
 
 
 class AI_AgentExecutor(AgentExecutor):
@@ -174,67 +201,71 @@ class AI_AgentExecutor(AgentExecutor):
         """Execute agent request using A2A protocol"""
         # Extract message from context
         incoming_message = context.message
-        
+
         if not incoming_message:
             # No message to process - this shouldn't happen
             from a2a.types import TaskStatusUpdateEvent, TaskStatus, TaskState
+
             await event_queue.enqueue_event(
                 TaskStatusUpdateEvent(
                     task_id=context.task_id or "unknown",
                     context_id=context.context_id or "unknown",
                     final=True,
-                    status=TaskStatus(state=TaskState.failed)
+                    status=TaskStatus(state=TaskState.failed),
                 )
             )
             return
-        
+
         # Get user input text from message parts
         user_input = context.get_user_input()
-        
+
         # Convert to our A2AMessage format
         message = A2AMessage(
-            sender_id=context.call_context.user.id if context.call_context and hasattr(context.call_context, 'user') and hasattr(context.call_context.user, 'id') else "client",
+            sender_id=context.call_context.user.id
+            if context.call_context
+            and hasattr(context.call_context, "user")
+            and hasattr(context.call_context.user, "id")
+            else "client",
             receiver_id=self.agent.agent_id,
-            method='process_user_message',
-            params={'text': user_input},
-            conversation_id=context.context_id or context.task_id or "unknown"
+            method="process_user_message",
+            params={"text": user_input},
+            conversation_id=context.context_id or context.task_id or "unknown",
         )
-        
+
         # Process the message
         response = await self.agent.process_message(message)
-        
+
         # Put result in event queue - create completed Message object
-        from a2a.types import TaskStatusUpdateEvent, TaskStatus, TaskState, Message, TextPart
-        
+        from a2a.types import (
+            TaskStatusUpdateEvent,
+            TaskStatus,
+            TaskState,
+            Message,
+            TextPart,
+        )
+
         # Create a Message object with the agent's response
         import uuid
+
         response_message = Message(
             message_id=str(uuid.uuid4()),
             role="agent",
-            parts=[
-                TextPart(
-                    kind="text", 
-                    text=response.response
-                )
-            ]
+            parts=[TextPart(kind="text", text=response.response)],
         )
-        
+
         # Create TaskStatus with the response message
-        task_status = TaskStatus(
-            state=TaskState.completed,
-            message=response_message
-        )
-        
+        task_status = TaskStatus(state=TaskState.completed, message=response_message)
+
         # Send the status update event
         await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
                 task_id=context.task_id or "unknown",
                 context_id=context.context_id or "unknown",
                 final=True,
-                status=task_status
+                status=task_status,
             )
         )
-    
+
     async def cancel(self):
         """Cancel any running operations (required by AgentExecutor interface)"""
         # For now, we don't have any cancellable operations
