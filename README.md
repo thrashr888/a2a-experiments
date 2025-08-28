@@ -172,4 +172,29 @@ open http://localhost:8080
 - [A2A Python SDK Tutorial - Agent Skills and Card](https://a2a-protocol.org/latest/tutorials/python/3-agent-skills-and-card/)
 - [A2A Python SDK Tutorials - Agent Executor](https://a2a-protocol.org/latest/tutorials/python/4-agent-executor/)
 - [A2A Python SDK Tutorials - Interact with Server](https://a2a-protocol.org/latest/tutorials/python/6-interact-with-server/)
-- [A2A Python SDK Tutorials - Streaming and Multiturn](https://a2a-protocol.org/latest/tutorials/python/7-streaming-and-multiturn/)
+  - [A2A Python SDK Tutorials - Streaming and Multiturn](https://a2a-protocol.org/latest/tutorials/python/7-streaming-and-multiturn/)
+
+## Container Registry (GHCR)
+
+- Publishing: GitHub Actions builds and pushes images to GHCR on pushes to `main` and version tags (`v*.*.*`).
+- Image: `ghcr.io/<owner>/<repo>` (for this repo: `ghcr.io/<owner>/a2a-experiments`).
+- Tags: branch name, git tag (e.g., `v1.2.3`), `latest` on default branch, and a `sha` tag.
+  - Nightly builds: scheduled daily and tagged as `nightly`.
+
+### Pull and Run
+
+```bash
+# Latest stable from default branch
+docker pull ghcr.io/<owner>/<repo>:latest
+
+# Nightly build
+docker pull ghcr.io/<owner>/<repo>:nightly
+docker run --rm -p 8080:8080 \
+  -e OPENAI_API_KEY=sk-... \
+  ghcr.io/<owner>/<repo>:latest
+```
+
+### GitHub Setup Notes
+
+- Ensure repository Settings → Actions → General → Workflow permissions is set to “Read and write permissions”.
+- No personal token needed: the workflow uses `${{ secrets.GITHUB_TOKEN }}` with `packages: write` permissions to push to GHCR.

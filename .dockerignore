@@ -1,0 +1,47 @@
+# Exclude VCS and CI
+.git
+.gitignore
+.github
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Environments
+.venv/
+venv/
+
+# OS/editor files
+.DS_Store
+*.swp
+*.swo
+
+# Local data and logs
+logs/
+*.log
+data/
+
+# Node/npm
+node_modules/
+
+# Project-local files not needed for image
+.env
+.env.*
+docker-compose.override.yml
+tests/
+scripts/*
+!scripts/health-check.sh
+
+# Allow required files explicitly (context still includes these by default)
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!src/
