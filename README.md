@@ -1,10 +1,12 @@
-# A2A Learning Lab - DevOps, SecOps, and FinOps Agent Ecosystem
+# A2A Learning Lab - An Ops Agent Ecosystem
 
 A learning project exploring the Agent2Agent (A2A) Protocol with specialized agents for DevOps, SecOps, and FinOps operations in a homelab environment.
 
 ## Overview
 
 This project implements a multi-agent system using the A2A Protocol where specialized agents collaborate to handle infrastructure operations, security monitoring, and financial optimization tasks. The system is designed to run in a Docker container on a homelab server.
+
+<img width="2806" height="1298" alt="CleanShot 2025-08-28 at 12 52 50@2x" src="https://github.com/user-attachments/assets/b1e2d913-6dca-4b59-a944-1b498b1401d7" />
 
 ## Agent Types
 
