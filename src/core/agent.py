@@ -161,28 +161,66 @@ class AI_AgentExecutor(AgentExecutor):
 
     async def execute(self, context: RequestContext, event_queue: EventQueue):
         """Execute agent request using A2A protocol"""
-        # Extract message data from context
-        message_data = context.task.input_messages[0] if context.task.input_messages else {}
+        # Extract message from context
+        incoming_message = context.message
+        
+        if not incoming_message:
+            # No message to process - this shouldn't happen
+            from a2a.types import TaskStatusUpdateEvent, TaskStatus, TaskState
+            await event_queue.enqueue_event(
+                TaskStatusUpdateEvent(
+                    task_id=context.task_id or "unknown",
+                    context_id=context.context_id or "unknown",
+                    final=True,
+                    status=TaskStatus(state=TaskState.failed)
+                )
+            )
+            return
+        
+        # Get user input text from message parts
+        user_input = context.get_user_input()
         
         # Convert to our A2AMessage format
         message = A2AMessage(
-            sender_id=context.call_context.user.id if hasattr(context.call_context.user, 'id') else "client",
+            sender_id=context.call_context.user.id if context.call_context and hasattr(context.call_context, 'user') and hasattr(context.call_context.user, 'id') else "client",
             receiver_id=self.agent.agent_id,
-            method=message_data.get('method', 'process'),
-            params=message_data.get('params', {}),
-            conversation_id=context.task.id
+            method='process_user_message',
+            params={'text': user_input},
+            conversation_id=context.context_id or context.task_id or "unknown"
         )
         
         # Process the message
         response = await self.agent.process_message(message)
         
-        # Put result in event queue
-        from a2a.server.events import TaskStatusUpdateEvent
-        await event_queue.put(
+        # Put result in event queue - create completed Message object
+        from a2a.types import TaskStatusUpdateEvent, TaskStatus, TaskState, Message, TextPart
+        
+        # Create a Message object with the agent's response
+        import uuid
+        response_message = Message(
+            message_id=str(uuid.uuid4()),
+            role="agent",
+            parts=[
+                TextPart(
+                    kind="text", 
+                    text=response.response
+                )
+            ]
+        )
+        
+        # Create TaskStatus with the response message
+        task_status = TaskStatus(
+            state=TaskState.completed,
+            message=response_message
+        )
+        
+        # Send the status update event
+        await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
-                task_id=context.task.id,
-                status="completed",
-                output=response.__dict__,
+                task_id=context.task_id or "unknown",
+                context_id=context.context_id or "unknown",
+                final=True,
+                status=task_status
             )
         )
     

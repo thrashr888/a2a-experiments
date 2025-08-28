@@ -19,7 +19,47 @@ from a2a_agents.secops.security_monitor import SecOpsAgent
 from a2a_agents.finops.cost_monitor import FinOpsAgent
 
 from a2a.server.apps import A2AStarletteApplication
+from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
+from a2a.server.tasks import DatabaseTaskStore
+from a2a.server.tasks import DatabasePushNotificationConfigStore
+from a2a.server.events import InMemoryQueueManager
+from a2a.types import AgentCard, AgentCapabilities, AgentSkill
+from sqlalchemy.ext.asyncio import create_async_engine
 import uvicorn
+import os
+
+
+def create_sqlite_engine(agent_id: str):
+    """Create SQLite async engine for agent persistence"""
+    # Ensure data directory exists
+    os.makedirs(settings.data_dir, exist_ok=True)
+    db_path = os.path.join(settings.data_dir, f"{agent_id}_tasks.db")
+    return create_async_engine(f"sqlite+aiosqlite:///{db_path}")
+
+
+def create_agent_card(agent_id: str, name: str, description: str, port: int, tags: list[str]) -> AgentCard:
+    """Create an AgentCard for an agent"""
+    # Create a basic skill for the agent
+    skill = AgentSkill(
+        id=f"{agent_id}-skill",
+        name=f"{name} Core Skill",
+        description=description,
+        tags=tags,
+        examples=[f"Help me with {tags[0] if tags else 'general tasks'}"]
+    )
+    
+    return AgentCard(
+        name=name,
+        description=description,
+        url=f"http://localhost:{port}",
+        capabilities=AgentCapabilities(),
+        default_input_modes=["text/plain"],
+        default_output_modes=["text/plain"],
+        protocol_version="0.3.0",
+        preferred_transport="JSONRPC",
+        skills=[skill],
+        version="1.0.0"
+    )
 
 
 class A2ALabLauncher:
@@ -44,31 +84,61 @@ class A2ALabLauncher:
         """Start all A2A agents"""
         self.logger.info("Starting A2A Learning Lab...")
         
-        # Initialize agents
-        self.agents = [
-            (CoordinatorAgent(), settings.a2a_port),
-            (DevOpsAgent(), 8082),
-            (SecOpsAgent(), 8083),
-            (FinOpsAgent(), 8084)
+        # Initialize agents with metadata
+        agents_config = [
+            (CoordinatorAgent(), settings.a2a_port, "coordinator-agent", "Chat Coordinator", "Manages conversations between specialized agents", ["coordination", "chat", "communication"]),
+            (DevOpsAgent(), 8082, "devops-agent-alex-001", "Infrastructure Monitor (Alex)", "DevOps engineer specializing in system monitoring and infrastructure management", ["devops", "infrastructure", "monitoring"]),
+            (SecOpsAgent(), 8083, "secops-agent-jordan-001", "Security Monitor (Jordan)", "Security engineer focused on threat detection and security monitoring", ["security", "monitoring", "threat-detection"]),
+            (FinOpsAgent(), 8084, "finops-agent-casey-001", "Cost Monitor (Casey)", "Financial operations specialist managing cloud costs and budgets", ["finops", "cost-management", "budgets"])
         ]
         
+        self.agents = [(agent, port) for agent, port, *_ in agents_config]
+        
         # Start each agent in a separate task
-        for agent, port in self.agents:
-            task = asyncio.create_task(self._start_agent_safely(agent, port))
+        for agent, port, agent_id, name, description, tags in agents_config:
+            task = asyncio.create_task(self._start_agent_safely(agent, port, agent_id, name, description, tags))
             self.tasks.append(task)
             # Small delay to avoid port conflicts
             await asyncio.sleep(1)
         
         self.logger.info(f"Started {len(self.agents)} agents")
     
-    async def _start_agent_safely(self, agent, port):
+    async def _start_agent_safely(self, agent, port, agent_id, name, description, tags):
         """Start an agent with error handling"""
         try:
-            agent_name = agent.__class__.__name__
-            self.logger.info(f"Starting {agent_name} on port {port}...")
+            self.logger.info(f"Starting {name} on port {port}...")
             
+            # Create AgentCard for this agent
+            agent_card = create_agent_card(agent_id, name, description, port, tags)
+            
+            # Create executor and RequestHandler with SQLite persistence
             executor = AI_AgentExecutor(agent)
-            app = A2AStarletteApplication(agent_executor=executor)
+            
+            # Create SQLite engine and stores
+            engine = create_sqlite_engine(agent_id)
+            task_store = DatabaseTaskStore(engine=engine)
+            push_config_store = DatabasePushNotificationConfigStore(engine=engine)
+            queue_manager = InMemoryQueueManager()
+            
+            # Initialize database tables
+            await task_store.initialize()
+            await push_config_store.initialize()
+            
+            request_handler = DefaultRequestHandler(
+                agent_executor=executor,
+                task_store=task_store,
+                queue_manager=queue_manager,
+                push_config_store=push_config_store
+            )
+            
+            # Create A2A Starlette Application with correct parameters
+            a2a_app = A2AStarletteApplication(
+                agent_card=agent_card,
+                http_handler=request_handler
+            )
+            
+            # Build the Starlette app
+            app = a2a_app.build()
             
             config = uvicorn.Config(
                 app=app,
@@ -80,7 +150,9 @@ class A2ALabLauncher:
             await server.serve()
 
         except Exception as e:
-            self.logger.error(f"Failed to start {agent.__class__.__name__}: {e}")
+            self.logger.error(f"Failed to start {name}: {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
     
     async def start_web_server(self):
         """Start the web server"""

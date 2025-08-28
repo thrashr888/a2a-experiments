@@ -314,37 +314,85 @@ async def trigger_agent_contributions(conversation_id: str, user_message: str, h
         try:
             import httpx
             
-            # Call agent directly
+            # Call agent using A2A JSON-RPC protocol
+            message_parts = [
+                {
+                    "kind": "text", 
+                    "text": user_message
+                }
+            ]
+            
+            jsonrpc_payload = {
+                "jsonrpc": "2.0",
+                "method": "message/send",
+                "params": {
+                    "message": {
+                        "messageId": f"msg-{conversation_id}-{datetime.now().timestamp()}",
+                        "role": "user",
+                        "parts": message_parts
+                    }
+                },
+                "id": f"request-{datetime.now().timestamp()}"
+            }
+            
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"http://localhost:{agent['port']}/process",
-                    json={"method": agent["method"], "params": {}},
+                    f"http://localhost:{agent['port']}/",
+                    json=jsonrpc_payload,
+                    headers={"Content-Type": "application/json"},
                     timeout=45.0
                 )
                 
                 if response.status_code == 200:
                     result = response.json()
-                    if "response" in result:
-                        # Agent successfully contributed - render with template
-                        agent_html = await render_agent_message(
-                            agent["name"], 
-                            result["response"], 
-                            request
-                        )
-                        html_parts.append(agent_html)
-                        
-                        # Save agent response to Redis (disabled)
-                        # await redis_client.add_message_to_history(conversation_id, {
-                        #     "role": "assistant",
-                        #     "content": result["response"],
-                        #     "agent": agent["name"],
-                        #     "timestamp": datetime.now().strftime("%H:%M:%S")
-                        # })
-                    else:
-                        # Agent failed - render error with template
+                    # Debug: print the response structure
+                    print(f"A2A Response from {agent['name']}: {result}")
+                    
+                    # Check for JSON-RPC success result
+                    if "result" in result and result.get("result"):
+                        json_result = result["result"]
+                        # Check for A2A Task response with status.message
+                        if "status" in json_result and "message" in json_result["status"]:
+                            status_message = json_result["status"]["message"]
+                            if "parts" in status_message and len(status_message["parts"]) > 0:
+                                response_text = status_message["parts"][0].get("text", "No response")
+                                # Agent successfully contributed - render with template
+                                agent_html = await render_agent_message(
+                                    agent["name"], 
+                                    response_text, 
+                                    request
+                                )
+                                html_parts.append(agent_html)
+                            else:
+                                # No parts in status message
+                                error_html = await render_agent_error(
+                                    agent["name"],
+                                    "No message content in response.",
+                                    request
+                                )
+                                html_parts.append(error_html)
+                        else:
+                            # No status.message field
+                            error_html = await render_agent_error(
+                                agent["name"],
+                                "Invalid A2A response format.",
+                                request
+                            )
+                            html_parts.append(error_html)
+                    elif "error" in result:
+                        # JSON-RPC error response
+                        error_msg = result["error"].get("message", "Unknown error")
                         error_html = await render_agent_error(
                             agent["name"],
-                            "Failed to respond.",
+                            f"Agent error: {error_msg}",
+                            request
+                        )
+                        html_parts.append(error_html)
+                    else:
+                        # No result or error field - unexpected response format
+                        error_html = await render_agent_error(
+                            agent["name"],
+                            "Unexpected response format.",
                             request
                         )
                         html_parts.append(error_html)
