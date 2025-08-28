@@ -239,7 +239,7 @@ class AIAgent:
         
         # Call OpenAI with function calling
         response = await self.client.chat.completions.create(
-            model="gpt-5",
+            model="gpt-5-mini",
             messages=messages,
             tools=[tool.to_openai_function() for tool in self.tools],
             tool_choice="auto"
@@ -481,7 +481,7 @@ Shall I have Jordan implement the security measures while Casey sets up monitori
 ```bash
 # AI Configuration
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-5
+OPENAI_MODEL=gpt-5-mini
 AI_TEMPERATURE=0.1
 MAX_TOKENS=2000
 

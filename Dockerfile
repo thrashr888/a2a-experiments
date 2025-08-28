@@ -31,8 +31,8 @@ WORKDIR /app
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-# Create logs directory
-RUN mkdir -p logs
+# Create logs and data directories with proper permissions
+RUN mkdir -p logs data && chmod 777 logs data
 
 # Make sure to use virtual environment
 ENV PATH="/app/.venv/bin:$PATH"

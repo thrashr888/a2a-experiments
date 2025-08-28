@@ -96,13 +96,20 @@ class DevOpsAgent(AIAgent):
 
     async def _check_disk_usage(self, path: str) -> Dict[str, Any]:
         # Implementation from original InfrastructureMonitorAgent
-        disk_usage = shutil.disk_usage(path)
-        return {
-            "path": path,
-            "total_bytes": disk_usage.total,
-            "used_bytes": disk_usage.used,
-            "used_percent": (disk_usage.used / disk_usage.total) * 100
-        }
+        try:
+            disk_usage = shutil.disk_usage(path)
+            return {
+                "path": path,
+                "total_bytes": disk_usage.total,
+                "used_bytes": disk_usage.used,
+                "used_percent": (disk_usage.used / disk_usage.total) * 100
+            }
+        except FileNotFoundError:
+            return {
+                "path": path,
+                "error": f"Path '{path}' not found or not accessible in containerized environment",
+                "suggestion": "Use '/' for root filesystem or '/app' for application directory"
+            }
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8082)

@@ -74,8 +74,18 @@ class AIAgent:
         """Process incoming A2A message with AI reasoning"""
         try:
             history_items = await self.session.get_items()
-            # Convert history items to OpenAI format
-            history = [{"role": item.get("role", "user"), "content": item.get("content", "")} for item in history_items]
+            # Convert history items to OpenAI format, preserving tool_calls and tool_call_id
+            history = []
+            for item in history_items:
+                msg = {"role": item.get("role", "user"), "content": item.get("content", "")}
+                # Preserve tool_calls for assistant messages
+                if item.get("tool_calls"):
+                    msg["tool_calls"] = item["tool_calls"]
+                # Preserve tool_call_id for tool messages
+                if item.get("tool_call_id"):
+                    msg["tool_call_id"] = item["tool_call_id"]
+                    msg["name"] = item.get("name", "unknown_tool")
+                history.append(msg)
             
             user_message_content = f"Method: {message.method}, Params: {json.dumps(message.params)}"
             await self.session.add_items([{"role": "user", "content": user_message_content}])
@@ -120,6 +130,7 @@ class AIAgent:
                     await self.session.add_items([{
                         "role": "tool",
                         "tool_call_id": tool_call.id,
+                        "name": tool_call.function.name,
                         "content": json.dumps(result)
                     }])
 

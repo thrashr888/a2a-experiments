@@ -85,7 +85,7 @@ class MyAgent(AIAgent):
 
 ### Technology Stack
 - **Backend**: FastAPI with HTMX for server-rendered components
-- **AI**: OpenAI GPT-4 with function calling for tool use
+- **AI**: OpenAI GPT-5 with function calling for tool use
 - **Storage**: Redis for conversation history, PostgreSQL for persistent data
 - **Deployment**: Docker Compose with health checks
 - **Frontend**: Dark theme inspired by HashiCorp/Vercel/Linear

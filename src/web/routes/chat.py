@@ -2,6 +2,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from datetime import datetime
 import json
+import os
+import asyncio
 from openai import AsyncOpenAI
 
 from core.agent_registry import registry
@@ -10,6 +12,73 @@ from web.utils import safe_template_response
 # from utils.redis_client import redis_client  # Disabled to avoid dependency issues
 
 router = APIRouter(prefix="/api", tags=["chat"])
+
+class SimpleChatHistory:
+    """Simple file-based chat history manager"""
+    
+    def __init__(self):
+        self.history_dir = os.path.join(settings.data_dir, "chat_history")
+        os.makedirs(self.history_dir, exist_ok=True)
+        self._lock = asyncio.Lock()
+    
+    def _get_history_file(self, conversation_id: str) -> str:
+        return os.path.join(self.history_dir, f"{conversation_id}.json")
+    
+    async def add_message(self, conversation_id: str, message: dict):
+        """Add a message to conversation history"""
+        async with self._lock:
+            history_file = self._get_history_file(conversation_id)
+            
+            # Load existing history
+            messages = []
+            if os.path.exists(history_file):
+                try:
+                    with open(history_file, 'r') as f:
+                        messages = json.load(f)
+                except:
+                    messages = []
+            
+            # Add new message
+            messages.append(message)
+            
+            # Keep only last 50 messages to prevent unbounded growth
+            if len(messages) > 50:
+                messages = messages[-50:]
+            
+            # Save back to file
+            try:
+                with open(history_file, 'w') as f:
+                    json.dump(messages, f, indent=2)
+            except Exception as e:
+                print(f"Error saving chat history: {e}")
+    
+    async def get_history(self, conversation_id: str) -> list:
+        """Get conversation history"""
+        history_file = self._get_history_file(conversation_id)
+        
+        if not os.path.exists(history_file):
+            return []
+        
+        try:
+            with open(history_file, 'r') as f:
+                messages = json.load(f)
+            
+            # Return last 20 messages for UI
+            return messages[-20:] if len(messages) > 20 else messages
+        except:
+            return []
+    
+    async def clear_history(self, conversation_id: str):
+        """Clear conversation history"""
+        history_file = self._get_history_file(conversation_id)
+        try:
+            if os.path.exists(history_file):
+                os.remove(history_file)
+        except Exception as e:
+            print(f"Error clearing chat history: {e}")
+
+# Initialize chat history manager
+chat_history = SimpleChatHistory()
 
 class AICoordinator:
     """AI-powered coordinator that dynamically discovers and routes to available A2A agents"""
@@ -266,11 +335,21 @@ Use the call_agent function to contact any of the available agents with appropri
 
 async def render_agent_message(agent_name: str, content: str, request: Request) -> str:
     """Render individual agent message using component template"""
+    timestamp = datetime.now().strftime("%H:%M:%S")
     context = {
         "agent_name": agent_name,
         "content": content,
-        "timestamp": datetime.now().strftime("%H:%M:%S")
+        "timestamp": timestamp
     }
+    
+    # Save agent response to chat history
+    await chat_history.add_message("main_chat", {
+        "role": "assistant",
+        "agent_name": agent_name,
+        "content": content,
+        "timestamp": timestamp
+    })
+    
     response = safe_template_response("components/agent_message.html", request, context)
     return response.body.decode()
 
@@ -439,12 +518,12 @@ async def chat_with_coordinator(request: Request):
         # Get timestamp for user message
         user_time = datetime.now().strftime("%H:%M:%S")
         
-        # Save user message to Redis (disabled)
-        # await redis_client.add_message_to_history(conversation_id, {
-        #     "role": "user",
-        #     "content": user_message,
-        #     "timestamp": user_time
-        # })
+        # Save user message to file-based history
+        await chat_history.add_message(conversation_id, {
+            "role": "user",
+            "content": user_message,
+            "timestamp": user_time
+        })
         
         # Create HTML for user message using template
         html_parts = []
@@ -474,35 +553,28 @@ async def chat_with_coordinator(request: Request):
 
 @router.get("/chat/history", response_class=HTMLResponse)
 async def get_chat_history(request: Request):
-    """Load chat history from Redis"""
+    """Load chat history from file-based storage"""
     conversation_id = "main_chat"
     
     try:
-        # history = await redis_client.get_conversation_history(conversation_id)  # Disabled
-        # # Limit history to prevent UI overload
-        # if len(history) > 20:
-        #     history = history[-20:]
-        # context = {"messages": history}
-        context = {"messages": []}  # Empty history for now
-    except Exception:
+        history = await chat_history.get_history(conversation_id)
+        context = {"messages": history}
+    except Exception as e:
+        print(f"Error loading chat history: {e}")
         context = {"messages": []}
     
     return safe_template_response("components/chat_history.html", request, context)
 
 @router.post("/chat/clear", response_class=HTMLResponse)
 async def clear_chat_history(request: Request):
-    """Clear chat history from Redis"""
+    """Clear chat history from file-based storage"""
     conversation_id = "main_chat"
     
     try:
-        # Clear the conversation from Redis (disabled)
-        # client = await redis_client._get_client()
-        # await client.delete(conversation_id)
-        
-        # Return empty chat
+        await chat_history.clear_history(conversation_id)
         context = {"messages": []}
     except Exception as e:
-        # Even if Redis fails, return empty chat
+        print(f"Error clearing chat history: {e}")
         context = {"messages": []}
     
     return safe_template_response("components/chat_history.html", request, context)

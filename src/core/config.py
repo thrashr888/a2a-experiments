@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    openai_model: str = "gpt-5"
+    openai_model: str = "gpt-5-mini"
     openai_api_key: str = ""
     
     host: str = "0.0.0.0"
