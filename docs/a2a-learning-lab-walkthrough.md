@@ -19,6 +19,7 @@ This guide orients you to this repo through the lens of learning A2A (Agent‑to
   - `finops/cost_monitor.py`: FinOps agent (Casey) — cost estimates, optimizations, monthly projection.
   - `containerops/containerops_agent.py`: ContainerOps agent (Morgan) — container management, system info, disk usage.
   - `dataops/data_query.py`: DataOps agent (Dana) — PostgreSQL queries, schema inspection, data analysis.
+  - `gitops/gitops_agent.py`: GitOps agent (Riley) — git operations, GitHub API via MCP, CI/CD monitoring.
 - `src/web/`
   - `app.py`: FastAPI app with startup agent registration for the dashboard.
   - `routes/chat.py`: Chat endpoints with intelligent A2A routing (single specialist agent responds per message).
@@ -43,6 +44,7 @@ Notes
     - FinOps (Casey): `8084`
     - ContainerOps (Morgan): `8085`
     - DataOps (Dana): `8086`
+    - GitOps (Riley): `8087`
 
 ### 2) Bridging LLM reasoning to A2A
 - `AIAgent` encapsulates:
@@ -60,7 +62,7 @@ Notes
   - `A2ATaskRouter` uses AI-powered routing to determine which single specialist agent should handle each user request
   - `route_to_specialist_agent(...)` sends the message to only the most appropriate agent using JSON‑RPC `message/send` to the agent's root endpoint
   - Each agent response is rendered as its own `div.message` using `components/agent_message.html` with the agent's proper identity
-  - Routing rules: Infrastructure/DevOps → Alex, Security → Jordan, Costs → Casey, Containers → Morgan, Database → Dana
+  - Routing rules: Infrastructure/DevOps → Alex, Security → Jordan, Costs → Casey, Containers → Morgan, Database → Dana, Git/GitHub → Riley
   - This follows proper A2A delegation patterns where only the right expert responds, rather than broadcasting to all agents
 - Agent self-registration: Each agent registers itself in the registry on startup, enabling dynamic discovery
 
@@ -156,6 +158,12 @@ This Learning Lab demonstrates advanced A2A protocol patterns:
 - **JSON-RPC 2.0**: Proper `message/send` method implementation  
 - **Streaming Pattern**: Multiple events per task for progress updates
 - **Agent Identity**: Each specialist speaks for themselves
+
+### Model Context Protocol (MCP) Integration
+- **A2A + MCP**: Demonstrates complementary usage of both protocols
+- **GitOps Agent**: Uses MCP for enhanced GitHub API access
+- **Tool Integration**: MCP tools alongside native A2A capabilities
+- **Fallback Pattern**: Graceful degradation when MCP unavailable
 
 ## A2A Docs & SDK References
 - A2A protocol topics: agent discovery, extensions, and "life of a task".
