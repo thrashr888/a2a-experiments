@@ -4,7 +4,6 @@ import psutil
 from typing import Dict, Any, List
 
 from core.agent import AIAgent, AgentTool, A2AMessage
-from utils.a2a_mock import A2AServer
 from core.config import settings
 
 FINOPS_SYSTEM_PROMPT = """
@@ -109,6 +108,3 @@ class FinOpsAgent(AIAgent):
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8084)
-
-
-# To run this agent, use the main entry point at src/main.py

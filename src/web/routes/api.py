@@ -28,7 +28,7 @@ async def get_stats_component(request: Request):
         context = {
             "total_agents": total_agents,
             "online_agents": online_agents,
-            "workflows_run": 0,  # TODO: Track this in session/database
+            "workflows_run": 0,  # Future: Track conversation count in session storage
             "system_status": system_status,
         }
     except Exception:

@@ -593,7 +593,7 @@ class DockerMonitorAgent(AIAgent):
     async def _start_container(self, container_id: str) -> Dict[str, Any]:
         """Start a Docker container"""
         client = self._get_docker_client()
-        
+
         def start_container():
             try:
                 container = client.containers.get(container_id)
@@ -604,10 +604,10 @@ class DockerMonitorAgent(AIAgent):
                         "container_id": container.id[:12],
                         "status": container.status,
                     }
-                
+
                 container.start()
                 container.reload()
-                
+
                 return {
                     "success": True,
                     "message": f"Successfully started container {container.name}",
@@ -616,7 +616,7 @@ class DockerMonitorAgent(AIAgent):
                 }
             except Exception as e:
                 return {"error": f"Failed to start container: {str(e)}"}
-        
+
         try:
             loop = asyncio.get_event_loop()
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -630,10 +630,12 @@ class DockerMonitorAgent(AIAgent):
         except Exception as e:
             return {"error": f"Failed to start container: {str(e)}"}
 
-    async def _stop_container(self, container_id: str, timeout: int = 10) -> Dict[str, Any]:
+    async def _stop_container(
+        self, container_id: str, timeout: int = 10
+    ) -> Dict[str, Any]:
         """Stop a Docker container"""
         client = self._get_docker_client()
-        
+
         def stop_container():
             try:
                 container = client.containers.get(container_id)
@@ -644,10 +646,10 @@ class DockerMonitorAgent(AIAgent):
                         "container_id": container.id[:12],
                         "status": container.status,
                     }
-                
+
                 container.stop(timeout=timeout)
                 container.reload()
-                
+
                 return {
                     "success": True,
                     "message": f"Successfully stopped container {container.name}",
@@ -656,7 +658,7 @@ class DockerMonitorAgent(AIAgent):
                 }
             except Exception as e:
                 return {"error": f"Failed to stop container: {str(e)}"}
-        
+
         try:
             loop = asyncio.get_event_loop()
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -666,20 +668,24 @@ class DockerMonitorAgent(AIAgent):
                 )
             return result
         except asyncio.TimeoutError:
-            return {"error": f"Container stop operation timed out after {timeout + 10} seconds"}
+            return {
+                "error": f"Container stop operation timed out after {timeout + 10} seconds"
+            }
         except Exception as e:
             return {"error": f"Failed to stop container: {str(e)}"}
 
-    async def _restart_container(self, container_id: str, timeout: int = 10) -> Dict[str, Any]:
+    async def _restart_container(
+        self, container_id: str, timeout: int = 10
+    ) -> Dict[str, Any]:
         """Restart a Docker container"""
         client = self._get_docker_client()
-        
+
         def restart_container():
             try:
                 container = client.containers.get(container_id)
                 container.restart(timeout=timeout)
                 container.reload()
-                
+
                 return {
                     "success": True,
                     "message": f"Successfully restarted container {container.name}",
@@ -688,7 +694,7 @@ class DockerMonitorAgent(AIAgent):
                 }
             except Exception as e:
                 return {"error": f"Failed to restart container: {str(e)}"}
-        
+
         try:
             loop = asyncio.get_event_loop()
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -698,12 +704,11 @@ class DockerMonitorAgent(AIAgent):
                 )
             return result
         except asyncio.TimeoutError:
-            return {"error": f"Container restart operation timed out after {timeout + 15} seconds"}
+            return {
+                "error": f"Container restart operation timed out after {timeout + 15} seconds"
+            }
         except Exception as e:
             return {"error": f"Failed to restart container: {str(e)}"}
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8085)
-
-
-# To run this agent, use the main entry point at src/main.py

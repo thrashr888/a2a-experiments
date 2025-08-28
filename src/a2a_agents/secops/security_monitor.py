@@ -7,7 +7,6 @@ from typing import Dict, Any, List
 from datetime import datetime, timedelta
 
 from core.agent import AIAgent, AgentTool, A2AMessage
-from utils.a2a_mock import A2AServer
 from core.config import settings
 
 SECOPS_SYSTEM_PROMPT = """
@@ -157,6 +156,3 @@ class SecOpsAgent(AIAgent):
 
     async def start(self):
         await super().start(host="0.0.0.0", port=8083)
-
-
-# To run this agent, use the main entry point at src/main.py

@@ -27,7 +27,8 @@ src/agents/
 ├── devops/infrastructure_monitor.py    # System monitoring, performance
 ├── secops/security_monitor.py          # Security analysis, threat detection  
 ├── finops/cost_monitor.py              # Cost optimization, budget analysis
-└── host/coordinator.py                 # Multi-agent orchestration (TBD)
+├── docker/docker_monitor.py           # Container management, system info, disk usage
+└── dataops/data_query.py              # PostgreSQL queries, schema inspection, data analysis
 ```
 
 #### AI Agent Implementation Pattern
@@ -78,11 +79,6 @@ class MyAgent(AIAgent):
 - **Personality**: Data-driven, business-focused, always looking for savings opportunities  
 - **Tools**: Cost analysis, optimization recommendations, budget projections
 
-#### Coordinator Agent (Sam) - Not yet implemented
-- **Role**: Team lead who coordinates between specialists
-- **Personality**: Strategic thinker, excellent communicator, sees big picture
-- **Capability**: Delegates to appropriate agents, synthesizes responses
-
 ### Technology Stack
 - **Backend**: FastAPI with HTMX for server-rendered components
 - **AI**: OpenAI GPT-5 with function calling for tool use
@@ -100,7 +96,6 @@ class MyAgent(AIAgent):
 ### Key Files
 - `src/core/agent.py` - AI agent base classes and A2A message types
 - `src/core/config.py` - Configuration including OpenAI model settings
-- `src/utils/redis_client.py` - Conversation history management
 - `src/web/app.py` - HTMX endpoints for UI integration
 - `docs/ai-agent-integration.md` - Detailed architecture documentation
 
@@ -197,4 +192,3 @@ This project demonstrates:
 - https://openai.github.io/openai-agents-python/multi_agent/
 - https://openai.github.io/openai-agents-python/ref/memory/
 - https://openai.github.io/openai-agents-python/ref/items/#agents.items.ReasoningItem
-- 

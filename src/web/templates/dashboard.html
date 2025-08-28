@@ -20,7 +20,7 @@
         <!-- Chat Interface -->
         <div class="chat-container">
             <div class="chat-header">
-                <h2>💬 Chat with Coordinator Agent</h2>
+                <h2>💬 Chat with A2A Agents</h2>
                 <button class="clear-chat-btn" 
                         hx-post="/api/chat/clear" 
                         hx-target="#chat-messages" 
@@ -38,7 +38,7 @@
                     <div class="welcome-message">
                         <div class="message assistant-message">
                             <div class="message-header">
-                                <span class="message-sender">🤖 Coordinator Agent</span>
+                                <span class="message-sender">🤖 A2A Task Router</span>
                                 <span class="message-time">Loading...</span>
                             </div>
                             <div class="message-content">Loading chat history...</div>
@@ -59,7 +59,7 @@
                         typingDiv.innerHTML = `
                           <div class='message assistant-message typing-indicator'>
                             <div class='message-header'>
-                              <span class='message-sender'>🤖 Coordinator Agent</span>
+                              <span class='message-sender'>🤖 A2A Task Router</span>
                               <span class='message-time'>thinking...</span>
                             </div>
                             <div class='message-content'>

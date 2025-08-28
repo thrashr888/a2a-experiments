@@ -2,12 +2,12 @@
 <div class="welcome-message">
     <div class="message assistant-message">
         <div class="message-header">
-            <span class="message-sender">🤖 Coordinator Agent</span>
+            <span class="message-sender">🤖 A2A Task Router</span>
             <span class="message-time">Ready</span>
         </div>
         <div class="message-content">
-            Hello! I'm your A2A Coordinator Agent. I can help you interact with DevOps, SecOps, and FinOps agents. 
-            Ask me about system status, security checks, cost analysis, or any other operations.
+            Hello! I'm your A2A Task Router. I intelligently route your requests to the most appropriate specialist agent. 
+            Ask me about system status, security checks, cost analysis, Docker container management, Postgres database queries, or any other operations.
         </div>
     </div>
 </div>
@@ -25,7 +25,7 @@
     {% else %}
         <div class="message assistant-message">
             <div class="message-header">
-                <span class="message-sender">🤖 Coordinator Agent</span>
+                <span class="message-sender">🤖 {{ message.agent_name or 'A2A Task Router' }}</span>
                 <span class="message-time">{{ message.timestamp }}</span>
             </div>
             <div class="message-content">{{ message.content | markdown }}</div>

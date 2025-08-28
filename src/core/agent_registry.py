@@ -10,6 +10,7 @@ class AgentType(Enum):
     DEVOPS = "devops"
     SECOPS = "secops"
     FINOPS = "finops"
+    DATAOPS = "dataops"
     HOST = "host"
 
 

@@ -12,11 +12,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config import settings
 from core.agent import AI_AgentExecutor
-from a2a_agents.coordinator.chat_coordinator import CoordinatorAgent
 from a2a_agents.devops.infrastructure_monitor import DevOpsAgent
 from a2a_agents.secops.security_monitor import SecOpsAgent
 from a2a_agents.finops.cost_monitor import FinOpsAgent
 from a2a_agents.docker.docker_monitor import DockerMonitorAgent
+from a2a_agents.dataops.data_query import DataOpsAgent
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
@@ -91,14 +91,6 @@ class A2ALabLauncher:
         # Initialize agents with metadata
         agents_config = [
             (
-                CoordinatorAgent(),
-                settings.a2a_port,
-                "coordinator-agent-sam-001",
-                "Chat Coordinator (Sam)",
-                "Manages conversations between specialized agents",
-                ["coordination", "chat", "communication"],
-            ),
-            (
                 DevOpsAgent(),
                 8082,
                 "devops-agent-alex-001",
@@ -129,6 +121,14 @@ class A2ALabLauncher:
                 "Docker Monitor (Morgan)",
                 "Container operations engineer specializing in Docker monitoring and management",
                 ["docker", "containers", "monitoring"],
+            ),
+            (
+                DataOpsAgent(),
+                8086,
+                "dataops-agent-dana-001",
+                "DataOps (Dana)",
+                "Runs read-only Postgres queries and inspects schemas",
+                ["dataops", "postgres", "queries"],
             ),
         ]
 
@@ -194,13 +194,19 @@ class A2ALabLauncher:
                 id=agent_id,
                 name=name,
                 description=description,
-                agent_type=AgentType.DEVOPS
-                if "docker" in agent_id or "devops" in agent_id
-                else AgentType.SECOPS
-                if "secops" in agent_id
-                else AgentType.FINOPS
-                if "finops" in agent_id
-                else AgentType.HOST,
+                agent_type=(
+                    AgentType.HOST
+                    if "unused" in agent_id
+                    else AgentType.DEVOPS
+                    if ("docker" in agent_id or "devops" in agent_id)
+                    else AgentType.SECOPS
+                    if "secops" in agent_id
+                    else AgentType.FINOPS
+                    if "finops" in agent_id
+                    else AgentType.DATAOPS
+                    if "dataops" in agent_id
+                    else AgentType.DEVOPS
+                ),
                 capabilities=tags,
                 endpoint=f"http://localhost:{port}",
                 status=AgentStatus.ONLINE,
@@ -254,10 +260,6 @@ class A2ALabLauncher:
 
             # Start agents
             await self.start_agents()
-
-            # Start coordinator server (disabled for now)
-            # coordinator_task = asyncio.create_task(start_coordinator_server())
-            # self.tasks.append(coordinator_task)
 
             # Start web server
             web_task = asyncio.create_task(self.start_web_server())

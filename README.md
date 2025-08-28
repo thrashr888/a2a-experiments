@@ -29,49 +29,56 @@ This project implements a multi-agent system using the A2A Protocol where specia
 ## Architecture
 
 ```
-+--------------------+    +--------------------+    +--------------------+
-|   DevOps Agents    |    |   SecOps Agents    |    |   FinOps Agents    |
-| - Infrastructure   |    | - Vulnerability    |    | - Cost Monitor     |
-| - Deployment       |    | - Security Mon.    |    | - Resource Opt.    |
-| - Backup           |    | - Compliance       |    | - Budget Alert     |
-| - Log Analysis     |    | - Incident Resp.   |    | - Reporting        |
-+--------------------+    +--------------------+    +--------------------+
-            \                   |                           /
-             \                  |                          /
-              \                 |                         /
-                       +---------------------+
-                       |     Host Agent      |
-                       |    (Orchestrator)   |
-                       +---------------------+
-                                  |
-                       +---------------------+
-                       |       Web UI        |
-                       |   (HTML Frontend)   |
-                       +---------------------+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           A2A Task Router                              │
+│                     AI-Powered Intelligent Routing                     │
+│                                                                         │
+│  User Question → Route to Single Best Agent → Agent Responds           │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+            ┌───────────────────────┼───────────────────────┐
+            │                       │                       │
+┌───────────▼──────────┐ ┌─────────▼──────────┐ ┌─────────▼──────────┐
+│   DevOps Agent       │ │   SecOps Agent     │ │   FinOps Agent     │
+│   (Alex)             │ │   (Jordan)         │ │   (Casey)          │
+│   Infrastructure &   │ │   Security &       │ │   Cost Analysis &  │
+│   System Monitoring  │ │   Threat Detection │ │   Optimization     │
+└──────────────────────┘ └────────────────────┘ └────────────────────┘
+
+┌─────────────────────┐      ┌─────────────────────┐
+│  Docker Agent       │      │  DataOps Agent      │
+│  (Morgan)           │      │  (Dana)             │
+│  Container Mgmt &   │      │  PostgreSQL Queries│
+│  Docker Operations  │      │  & Data Analysis    │
+└─────────────────────┘      └─────────────────────┘
+                        │
+            ┌─────────────────────┐
+            │      Web UI         │
+            │  (HTMX + FastAPI)   │
+            └─────────────────────┘
 ```
 
-## Use Cases
+## Key Features
 
-### Multi-Agent Scenarios
+### ✅ **Proper A2A Protocol Implementation**
+- **Intelligent Task Routing**: AI determines which single specialist agent should handle each request
+- **Agent Identity**: Each agent speaks for themselves with their unique expertise and persona
+- **Real Specialist Responses**: Only the most appropriate agent responds (no coordinator speaking for others)
+- **Dynamic Agent Discovery**: Agents self-register and are discoverable via registry
 
-1. **Security Incident Response**
-   - User reports suspicious activity
-   - Security Monitor Agent detects the threat
-   - Incident Response Agent coordinates response
-   - Infrastructure Monitor Agent checks system impact
-   - Cost Monitor Agent assesses incident costs
+### 🎯 **Smart Agent Routing**
+- **DevOps Questions** → Alex (Infrastructure Monitor): system metrics, performance, disk usage
+- **Security Questions** → Jordan (Security Monitor): threats, vulnerabilities, alerts  
+- **Cost Questions** → Casey (Cost Monitor): spending analysis, optimization recommendations
+- **Docker Questions** → Morgan (Docker Monitor): container management, Docker system info
+- **Database Questions** → Dana (DataOps): PostgreSQL queries, schema inspection, data analysis
 
-2. **Resource Optimization**
-   - Cost Monitor Agent identifies high usage
-   - Resource Optimizer Agent suggests improvements
-   - Deployment Agent implements optimizations
-   - Backup Agent ensures data safety during changes
-
-3. **Compliance Audit**
-   - Compliance Agent runs security checks
-   - Vulnerability Scanner Agent identifies issues
-   - Deployment Agent applies fixes
-   - Reporting Agent generates audit reports
+### 🔧 **Agent Capabilities**
+- **Alex (DevOps)**: System monitoring, resource alerts, disk usage analysis
+- **Jordan (SecOps)**: Security monitoring, threat detection, compliance checks
+- **Casey (FinOps)**: Cost analysis, budget tracking, optimization suggestions  
+- **Morgan (Docker)**: Container management (start/stop/restart), system monitoring, disk usage
+- **Dana (DataOps)**: PostgreSQL database queries, schema inspection, data analysis and reporting
 
 ## Technology Stack
 
@@ -92,20 +99,21 @@ a2a-experiments/
 ├── docker-compose.yml          # PostgreSQL, Redis, app services
 ├── Dockerfile                  # Multi-stage container build
 ├── src/
-│   ├── agents/
+│   ├── a2a_agents/
 │   │   ├── devops/             # DevOps agent implementations
 │   │   ├── secops/             # SecOps agent implementations
 │   │   └── finops/             # FinOps agent implementations
+│   ├── agents/
+│   │   └── memory/             # Lightweight SQLite session storage
 │   ├── core/
-│   │   ├── host_agent.py       # Main orchestrator
+│   │   ├── agent.py            # Agent base + executor glue
 │   │   ├── agent_registry.py   # Agent discovery and management
 │   │   └── config.py           # Configuration management
 │   ├── web/
 │   │   ├── app.py              # Web server
 │   │   └── static/             # HTML, CSS, JS files
 │   └── utils/
-│       ├── logging.py          # Structured logging
-│       └── metrics.py          # Metrics collection
+│       └── a2a_mock.py         # Local A2A mock server/client utilities
 ├── tests/                      # Unit and integration tests
 ├── scripts/
 │   ├── setup-dev.sh            # Development environment setup
@@ -198,3 +206,13 @@ docker run --rm -p 8080:8080 \
 
 - Ensure repository Settings → Actions → General → Workflow permissions is set to “Read and write permissions”.
 - No personal token needed: the workflow uses `${{ secrets.GITHUB_TOKEN }}` with `packages: write` permissions to push to GHCR.
+
+## Connecting DataOps to Host Postgres
+
+- Easiest (recommended): use `PGHOST=host.docker.internal` so the container reaches your macOS Postgres.
+- Homebrew defaults (local runs):
+  - Host `localhost`, Port `5432`, User `<your macOS username>`, DB `<your macOS username>`, empty password.
+- Optional (advanced, sockets):
+  - Set Postgres `unix_socket_directories` to a stable path (e.g., `/opt/homebrew/var/run/postgresql`).
+  - Mount it into the container (see commented volume in `docker-compose.yml`).
+  - Set `PGHOST` to the mounted path (e.g., `/var/run/postgresql`).

@@ -12,16 +12,16 @@ This guide orients you to this repo through the lens of learning A2A (Agent‑to
 - `src/core/`
   - `agent.py`: A2A/LLM bridge. Defines `AIAgent`, `AgentTool`, `A2AMessage`, `A2AResponse`, and `AI_AgentExecutor` that adapts an `AIAgent` to the A2A server runtime.
   - `config.py`: Runtime configuration (`OPENAI_API_KEY`, ports, logging, data paths).
-  - `agent_registry.py`: In‑memory discovery/metadata for agents used by the web UI and coordinator flows.
-  - `host_agent.py`: Experimental coordinator agent (Sam) with a “delegate_to_agent” tool (not primary path).
+  - `agent_registry.py`: In‑memory discovery/metadata for agents used by the web UI and task routing flows.
 - `src/a2a_agents/`
   - `devops/infrastructure_monitor.py`: DevOps agent (Alex) — system metrics, alerts, disk usage.
   - `secops/security_monitor.py`: SecOps agent (Jordan) — mock security checks, alerts.
   - `finops/cost_monitor.py`: FinOps agent (Casey) — cost estimates, optimizations, monthly projection.
-  - `coordinator/chat_coordinator.py`: Alternative coordinator prototype (not used by the web path); shows direct agent calls.
+  - `docker/docker_monitor.py`: Docker agent (Morgan) — container management, system info, disk usage.
+  - `dataops/data_query.py`: DataOps agent (Dana) — PostgreSQL queries, schema inspection, data analysis.
 - `src/web/`
   - `app.py`: FastAPI app with startup agent registration for the dashboard.
-  - `routes/chat.py`: Chat endpoints and the A2A streaming multi‑turn pattern (each agent posts an individual message).
+  - `routes/chat.py`: Chat endpoints with intelligent A2A routing (single specialist agent responds per message).
   - `routes/api.py`: HTMX components for stats and agents grid.
   - `templates/`: `dashboard.html` + `components/` partials for messages and status.
 - `src/utils/a2a_mock.py`: Minimal FastAPI “A2A server” helper used by early prototypes. The live A2A runtime is created in `src/main.py` via the A2A SDK.
@@ -38,10 +38,11 @@ Notes
   - Wraps each `AIAgent` in an `AI_AgentExecutor` (adapter in `src/core/agent.py`).
   - Builds a Starlette app via `A2AStarletteApplication` and serves it with Uvicorn.
   - Ports:
-    - Coordinator (Sam): `8081`
     - DevOps (Alex): `8082`
     - SecOps (Jordan): `8083`
     - FinOps (Casey): `8084`
+    - Docker Monitor (Morgan): `8085`
+    - DataOps (Dana): `8086`
 
 ### 2) Bridging LLM reasoning to A2A
 - `AIAgent` encapsulates:
@@ -50,12 +51,14 @@ Notes
   - `process_message(A2AMessage)`: runs an LLM chat completion with tools and then executes tool calls via `_execute_tool`.
 - `AI_AgentExecutor.execute(...)` adapts an incoming A2A `RequestContext` into an `A2AMessage`, calls `agent.process_message`, and emits updates via the A2A event queue.
 
-### 3) Web chat to A2A agents (multi‑turn streaming)
-- `src/web/routes/chat.py` implements the Learning Lab chat UX:
-  - `trigger_agent_contributions(...)` loops over agents and sends each a separate message using JSON‑RPC `message/send` to each agent’s root endpoint (A2A style). Each response is rendered as its own `div.message` using `components/agent_message.html` — this is the “A2A streaming multi‑turn pattern”.
-  - For simplicity and clear learning, no final aggregation is performed — each specialist speaks for themselves.
-  - A second, simpler path (`process_message_multi_turn`) shows direct REST calls to `/process` on known ports for DevOps/FinOps.
-- `src/web/app.py` registers demo agents into the UI registry on startup so the dashboard can show them.
+### 3) Web chat to A2A agents (intelligent routing)
+- `src/web/routes/chat.py` implements proper A2A protocol patterns:
+  - `A2ATaskRouter` uses AI-powered routing to determine which single specialist agent should handle each user request
+  - `route_to_specialist_agent(...)` sends the message to only the most appropriate agent using JSON‑RPC `message/send` to the agent's root endpoint
+  - Each agent response is rendered as its own `div.message` using `components/agent_message.html` with the agent's proper identity
+  - Routing rules: Infrastructure/DevOps → Alex, Security → Jordan, Costs → Casey, Docker → Morgan, Database → Dana
+  - This follows proper A2A delegation patterns where only the right expert responds, rather than broadcasting to all agents
+- Agent self-registration: Each agent registers itself in the registry on startup, enabling dynamic discovery
 
 ## Agent Implementation Pattern
 Each domain agent follows the same structure: persona + tools + tool executor.
@@ -82,25 +85,26 @@ Steps
   - Open `http://localhost:8080` for the dashboard/chat.
 
 Behavior
-- The launcher starts four A2A services (one per agent) and the web server.
-- In chat, your message appears once, followed by individual agent messages (Alex, Jordan, Casey) rendered separately — no aggregation.
+- The launcher starts five A2A services (one per agent) and the web server.
+- In chat, your message appears once, followed by a single response from the most appropriate specialist agent — proper A2A task delegation.
 
 ## A2A Message Flow (Chat Path)
 - UI posts to `/api/chat`.
-- Backend renders the user message, then calls `trigger_agent_contributions(...)`:
-  - Builds a JSON‑RPC 2.0 payload with `method: "message/send"` and a user `Message` (`kind: "text").
-  - Sends to each agent’s JSON‑RPC endpoint (`http://localhost:<port>/`).
-  - Handles each agent’s result and adds an individual message component.
-- This mirrors how A2A agents converse in a shared thread while remaining decoupled.
+- Backend renders the user message, then calls `route_to_specialist_agent(...)`:
+  - Uses AI-powered routing to determine which single specialist agent should handle the request.
+  - Builds a JSON‑RPC 2.0 payload with `method: "message/send"` and a user `Message` (`kind: "text`).
+  - Sends only to the selected agent's JSON‑RPC endpoint (`http://localhost:<port>/`).
+  - Renders the agent's response with proper agent identity.
+- This follows proper A2A delegation patterns where only the right expert responds.
 
 ## Extending the Lab
 - Add a new agent
   - Create a file under `src/a2a_agents/<domain>/<agent>.py`.
   - Define persona, tools, and `_execute_tool`.
   - Register it in `src/main.py` by adding an entry to `agents_config` with a unique port and `AgentCard` metadata.
-  - Optionally include it in the streaming list in `trigger_agent_contributions(...)` for UI participation.
-- Improve coordinator routing
-  - `src/web/routes/chat.py` contains `AICoordinator` that builds a dynamic tool `call_agent` from the registry. You can use this to let the LLM decide which agent to call.
+  - The routing will automatically include it based on agent registry entries.
+- Improve routing logic
+  - Modify the routing rules in `A2ATaskRouter.determine_best_agent()` to handle new agent types or capabilities.
 - Persist conversations (optional)
   - You can add a lightweight in-memory or file-backed history later if desired, but it isn’t required to learn A2A patterns here.
 - Refactor HTML
@@ -138,7 +142,7 @@ Quick, copy‑paste friendly steps to see the A2A pattern in action.
 
 3) Chat from the UI
 - Type: `Check system status`
-- You should see three separate agent messages (Alex/DevOps, Jordan/SecOps, Casey/FinOps) appear as individual bubbles — no aggregation.
+- You should see a single response from the most appropriate agent (likely Alex/DevOps for system status).
 
 4) Curl the chat endpoint (returns HTML snippet)
 - `curl -sS -X POST -H 'Content-Type: application/x-www-form-urlencoded' \
