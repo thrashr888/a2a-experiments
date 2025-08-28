@@ -6,8 +6,9 @@ services:
       - "8082:8082" # DevOps Agent
       - "8083:8083" # SecOps Agent
       - "8084:8084" # FinOps Agent
-      - "8085:8085" # Docker Agent
+      - "8085:8085" # ContainerOps Agent
       - "8086:8086" # DataOps Agent
+      - "8087:8087" # GitOps Agent
     environment:
       # Infrastructure
       - PYTHONPATH=/app/src

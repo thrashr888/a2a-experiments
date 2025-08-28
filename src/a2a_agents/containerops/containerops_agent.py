@@ -9,7 +9,7 @@ from core.agent import AIAgent, AgentTool, A2AMessage
 from core.config import settings
 
 DOCKER_SYSTEM_PROMPT = """
-You are Docker Monitor (Morgan), a specialized container operations engineer with expertise in Docker and container management.
+You are ContainerOps (Morgan), a specialized container operations engineer with expertise in Docker and container management.
 
 Your expertise includes:
 - Docker system monitoring and analysis
@@ -137,10 +137,10 @@ docker_tools = [
 ]
 
 
-class DockerMonitorAgent(AIAgent):
+class ContainerOpsAgent(AIAgent):
     def __init__(self):
         super().__init__(
-            agent_id="docker-agent-morgan-001",
+            agent_id="containerops-agent-morgan-001",
             system_prompt=DOCKER_SYSTEM_PROMPT,
             tools=docker_tools,
         )

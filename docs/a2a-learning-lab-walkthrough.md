@@ -10,21 +10,20 @@ This guide orients you to this repo through the lens of learning A2A (Agent‑to
 
 ## Project Structure (as implemented)
 - `src/core/`
-  - `agent.py`: A2A/LLM bridge. Defines `AIAgent`, `AgentTool`, `A2AMessage`, `A2AResponse`, and `AI_AgentExecutor` that adapts an `AIAgent` to the A2A server runtime.
+  - `agent.py`: A2A/LLM bridge. Defines `AIAgent`, `AgentTool`, `A2AMessage`, `A2AResponse`, and `AI_AgentExecutor` with enhanced A2A streaming, multiturn support, and well-known URI discovery.
   - `config.py`: Runtime configuration (`OPENAI_API_KEY`, ports, logging, data paths).
   - `agent_registry.py`: In‑memory discovery/metadata for agents used by the web UI and task routing flows.
 - `src/a2a_agents/`
   - `devops/infrastructure_monitor.py`: DevOps agent (Alex) — system metrics, alerts, disk usage.
   - `secops/security_monitor.py`: SecOps agent (Jordan) — mock security checks, alerts.
   - `finops/cost_monitor.py`: FinOps agent (Casey) — cost estimates, optimizations, monthly projection.
-  - `docker/docker_monitor.py`: Docker agent (Morgan) — container management, system info, disk usage.
+  - `containerops/containerops_agent.py`: ContainerOps agent (Morgan) — container management, system info, disk usage.
   - `dataops/data_query.py`: DataOps agent (Dana) — PostgreSQL queries, schema inspection, data analysis.
 - `src/web/`
   - `app.py`: FastAPI app with startup agent registration for the dashboard.
   - `routes/chat.py`: Chat endpoints with intelligent A2A routing (single specialist agent responds per message).
   - `routes/api.py`: HTMX components for stats and agents grid.
   - `templates/`: `dashboard.html` + `components/` partials for messages and status.
-- `src/utils/a2a_mock.py`: Minimal FastAPI “A2A server” helper used by early prototypes. The live A2A runtime is created in `src/main.py` via the A2A SDK.
 - `src/main.py`: Launches all agents as A2A JSON‑RPC services (A2A SDK + Uvicorn) and starts the web server.
 
 Notes
@@ -37,11 +36,12 @@ Notes
   - Creates an `AgentCard` (from `a2a.types`) describing the agent.
   - Wraps each `AIAgent` in an `AI_AgentExecutor` (adapter in `src/core/agent.py`).
   - Builds a Starlette app via `A2AStarletteApplication` and serves it with Uvicorn.
+  - **NEW**: Adds well-known URI endpoints (`/.well-known/agent-card.json`) for proper A2A agent discovery.
   - Ports:
     - DevOps (Alex): `8082`
     - SecOps (Jordan): `8083`
     - FinOps (Casey): `8084`
-    - Docker Monitor (Morgan): `8085`
+    - ContainerOps (Morgan): `8085`
     - DataOps (Dana): `8086`
 
 ### 2) Bridging LLM reasoning to A2A
@@ -49,14 +49,18 @@ Notes
   - `system_prompt`: agent persona and domain.
   - `tools`: OpenAI function-call tool specs derived from `AgentTool`.
   - `process_message(A2AMessage)`: runs an LLM chat completion with tools and then executes tool calls via `_execute_tool`.
+  - **NEW**: `request_clarification()`: supports A2A multiturn with `TaskState.input_required`.
+  - **NEW**: `to_a2a_message()`: helper for converting A2A SDK types.
 - `AI_AgentExecutor.execute(...)` adapts an incoming A2A `RequestContext` into an `A2AMessage`, calls `agent.process_message`, and emits updates via the A2A event queue.
+  - **NEW**: Sends progressive `TaskStatusUpdateEvent` for streaming progress.
+  - **NEW**: Uses `TaskArtifactUpdateEvent` with `lastChunk=True` for final responses.
 
 ### 3) Web chat to A2A agents (intelligent routing)
 - `src/web/routes/chat.py` implements proper A2A protocol patterns:
   - `A2ATaskRouter` uses AI-powered routing to determine which single specialist agent should handle each user request
   - `route_to_specialist_agent(...)` sends the message to only the most appropriate agent using JSON‑RPC `message/send` to the agent's root endpoint
   - Each agent response is rendered as its own `div.message` using `components/agent_message.html` with the agent's proper identity
-  - Routing rules: Infrastructure/DevOps → Alex, Security → Jordan, Costs → Casey, Docker → Morgan, Database → Dana
+  - Routing rules: Infrastructure/DevOps → Alex, Security → Jordan, Costs → Casey, Containers → Morgan, Database → Dana
   - This follows proper A2A delegation patterns where only the right expert responds, rather than broadcasting to all agents
 - Agent self-registration: Each agent registers itself in the registry on startup, enabling dynamic discovery
 
@@ -94,8 +98,15 @@ Behavior
   - Uses AI-powered routing to determine which single specialist agent should handle the request.
   - Builds a JSON‑RPC 2.0 payload with `method: "message/send"` and a user `Message` (`kind: "text`).
   - Sends only to the selected agent's JSON‑RPC endpoint (`http://localhost:<port>/`).
+  - **Enhanced**: Agent sends initial `TaskStatusUpdateEvent` ("processing...").
+  - **Enhanced**: Agent sends `TaskArtifactUpdateEvent` with final response.
   - Renders the agent's response with proper agent identity.
 - This follows proper A2A delegation patterns where only the right expert responds.
+
+### A2A Agent Discovery
+- Each agent serves its `AgentCard` at `/.well-known/agent-card.json` for automatic discovery.
+- Agents self-register in the registry on startup.
+- Supports both curated registry and well-known URI discovery patterns.
 
 ## Extending the Lab
 - Add a new agent
@@ -120,12 +131,36 @@ Behavior
 ## Common Issues
 - Import paths: ensure `PYTHONPATH=src` (running via `uv run python src/main.py` from project root achieves this).
 - OpenAI key: set `OPENAI_API_KEY` in your environment.
-- Ports in use: agents start on 8081–8084; stop prior processes or adjust.
+- Ports in use: agents start on 8082–8086; stop prior processes or adjust.
+
+## A2A Protocol Compliance ✅
+
+This Learning Lab demonstrates advanced A2A protocol patterns:
+
+### Agent Discovery
+- **Well-Known URIs**: Each agent serves its `AgentCard` at `/.well-known/agent-card.json`
+- **Registry Integration**: Agents self-register for dynamic discovery
+- **Capability Advertisement**: Skills and capabilities properly exposed
+
+### Task Lifecycle  
+- **Streaming Events**: Progressive `TaskStatusUpdateEvent` during processing
+- **Artifact Responses**: `TaskArtifactUpdateEvent` with `lastChunk=True` for final results
+- **State Management**: Proper task states (`running`, `completed`, `input_required`)
+
+### Multiturn Conversations
+- **Clarification Requests**: Agents can set `TaskState.input_required` 
+- **Context Preservation**: Tasks maintain `contextId` across turns
+- **Native A2A Types**: Helper methods for SDK integration
+
+### Message Protocol
+- **JSON-RPC 2.0**: Proper `message/send` method implementation  
+- **Streaming Pattern**: Multiple events per task for progress updates
+- **Agent Identity**: Each specialist speaks for themselves
 
 ## A2A Docs & SDK References
-- A2A protocol topics: agent discovery, extensions, and “life of a task”.
+- A2A protocol topics: agent discovery, extensions, and "life of a task".
 - OpenAI Agents Python SDK: sessions, running agents, multi‑agent patterns, memory, and reasoning items.
-- Follow the Learning Lab’s simplicity constraints: individual agent messages, server‑rendered components, and A2A patterns first.
+- Follow the Learning Lab's simplicity constraints: individual agent messages, server‑rendered components, and A2A patterns first.
 
 ## Try It
 
@@ -157,6 +192,11 @@ Quick, copy‑paste friendly steps to see the A2A pattern in action.
         "id": "1"
       }'`
 
+6) Test Agent Card discovery
+- `curl -sS http://localhost:8082/.well-known/agent-card.json` - Get DevOps agent card
+- `curl -sS http://localhost:8083/.well-known/agent-card.json` - Get SecOps agent card
+- `curl -sS http://localhost:8084/.well-known/agent-card.json` - Get FinOps agent card
+
 Troubleshooting
-- Port in use: stop existing processes on 8081–8084/8080 or change ports in `src/core/config.py`.
+- Port in use: stop existing processes on 8082–8086/8080 or change ports in `src/core/config.py`.
 - OpenAI key: ensure the key is exported or present in `.env`.

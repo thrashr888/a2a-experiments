@@ -2,6 +2,7 @@ from openai import AsyncOpenAI
 from typing import List, Dict, Any
 from dataclasses import dataclass
 import json
+import uuid
 
 from a2a.server.agent_execution import AgentExecutor
 from a2a.server.events import EventQueue
@@ -70,9 +71,67 @@ class AIAgent:
         return self._client
 
     async def _execute_tool(self, tool_call, conversation_id: str):
-        # This is the missing link identified earlier.
         # A concrete agent must implement this method.
         raise NotImplementedError("Agents must implement the _execute_tool method.")
+    
+    async def request_clarification(self, question: str, context_id: str, event_queue: EventQueue = None):
+        """Request clarification from user (A2A multiturn pattern)"""
+        if event_queue:
+            from a2a.types import TaskStatusUpdateEvent, TaskStatus, TaskState, Message, TextPart
+            
+            clarification_message = Message(
+                message_id=str(uuid.uuid4()),
+                role="agent",
+                parts=[TextPart(kind="text", text=question)]
+            )
+            
+            # Set task to input_required state
+            await event_queue.enqueue_event(
+                TaskStatusUpdateEvent(
+                    task_id=context_id,
+                    context_id=context_id,
+                    final=False,
+                    status=TaskStatus(state=TaskState.input_required, message=clarification_message)
+                )
+            )
+            
+            return True
+        return False
+    
+    def to_a2a_message(self, context: RequestContext) -> 'A2AMessage':
+        """Convert A2A SDK RequestContext to our A2AMessage format"""
+        user_input = context.get_user_input()
+        return A2AMessage(
+            sender_id=context.call_context.user.id if context.call_context and hasattr(context.call_context, "user") else "client",
+            receiver_id=self.agent_id,
+            method="process_user_message", 
+            params={"text": user_input},
+            conversation_id=context.context_id or context.task_id or "unknown"
+        )
+    
+    async def process_native_a2a_message(self, context: RequestContext, event_queue: EventQueue):
+        """Enhanced method using native A2A types for future migration"""
+        from a2a.types import Message, TextPart, TaskStatusUpdateEvent, TaskStatus, TaskState
+        
+        user_input = context.get_user_input()
+        
+        # Example of working with native A2A Message types
+        incoming_message = context.message
+        if incoming_message and incoming_message.parts:
+            # Process native A2A message parts directly
+            text_parts = [part.text for part in incoming_message.parts if hasattr(part, 'text')]
+            combined_text = " ".join(text_parts)
+            
+            # Use native A2A responses 
+            response_message = Message(
+                message_id=str(uuid.uuid4()),
+                role="agent",
+                parts=[TextPart(kind="text", text=f"Processed: {combined_text}")]
+            )
+            
+            return response_message
+        
+        return None
 
     async def process_message(self, message: A2AMessage) -> A2AResponse:
         """Process incoming A2A message with AI reasoning"""
@@ -219,23 +278,10 @@ class AI_AgentExecutor(AgentExecutor):
         # Get user input text from message parts
         user_input = context.get_user_input()
 
-        # Convert to our A2AMessage format
-        message = A2AMessage(
-            sender_id=context.call_context.user.id
-            if context.call_context
-            and hasattr(context.call_context, "user")
-            and hasattr(context.call_context.user, "id")
-            else "client",
-            receiver_id=self.agent.agent_id,
-            method="process_user_message",
-            params={"text": user_input},
-            conversation_id=context.context_id or context.task_id or "unknown",
-        )
+        # Convert to our A2AMessage format using helper method
+        message = self.agent.to_a2a_message(context)
 
-        # Process the message
-        response = await self.agent.process_message(message)
-
-        # Put result in event queue - create completed Message object
+        # Send initial progress update (A2A streaming pattern)
         from a2a.types import (
             TaskStatusUpdateEvent,
             TaskStatus,
@@ -243,9 +289,48 @@ class AI_AgentExecutor(AgentExecutor):
             Message,
             TextPart,
         )
+        
+        import uuid
+        initial_message = Message(
+            message_id=str(uuid.uuid4()),
+            role="agent", 
+            parts=[TextPart(kind="text", text=f"🔄 {self.agent.agent_id} is processing your request...")]
+        )
+        
+        await event_queue.enqueue_event(
+            TaskStatusUpdateEvent(
+                task_id=context.task_id or "unknown",
+                context_id=context.context_id or "unknown", 
+                final=False,
+                status=TaskStatus(state=TaskState.running, message=initial_message)
+            )
+        )
+
+        # Process the message
+        response = await self.agent.process_message(message)
+
+        # Send TaskArtifactUpdateEvent with the response (A2A streaming pattern)
+        from a2a.types import TaskArtifactUpdateEvent, Artifact, TextArtifact
+        
+        # Create artifact with agent's response
+        response_artifact = TextArtifact(
+            artifact_id=str(uuid.uuid4()),
+            kind="text",
+            title=f"Response from {self.agent.agent_id}",
+            text=response.response,
+            last_chunk=True
+        )
+        
+        # Send artifact update event
+        await event_queue.enqueue_event(
+            TaskArtifactUpdateEvent(
+                task_id=context.task_id or "unknown",
+                context_id=context.context_id or "unknown",
+                artifact=response_artifact
+            )
+        )
 
         # Create a Message object with the agent's response
-        import uuid
 
         response_message = Message(
             message_id=str(uuid.uuid4()),

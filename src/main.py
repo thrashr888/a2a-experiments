@@ -15,8 +15,9 @@ from core.agent import AI_AgentExecutor
 from a2a_agents.devops.infrastructure_monitor import DevOpsAgent
 from a2a_agents.secops.security_monitor import SecOpsAgent
 from a2a_agents.finops.cost_monitor import FinOpsAgent
-from a2a_agents.docker.docker_monitor import DockerMonitorAgent
+from a2a_agents.containerops.containerops_agent import ContainerOpsAgent
 from a2a_agents.dataops.data_query import DataOpsAgent
+from a2a_agents.gitops.gitops_agent import GitOpsAgent
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
@@ -115,12 +116,12 @@ class A2ALabLauncher:
                 ["finops", "cost-management", "budgets"],
             ),
             (
-                DockerMonitorAgent(),
+                ContainerOpsAgent(),
                 8085,
-                "docker-agent-morgan-001",
-                "Docker Monitor (Morgan)",
-                "Container operations engineer specializing in Docker monitoring and management",
-                ["docker", "containers", "monitoring"],
+                "containerops-agent-morgan-001",
+                "ContainerOps (Morgan)",
+                "Container operations engineer specializing in container monitoring and management",
+                ["containerops", "containers", "monitoring"],
             ),
             (
                 DataOpsAgent(),
@@ -129,6 +130,14 @@ class A2ALabLauncher:
                 "DataOps (Dana)",
                 "Runs read-only Postgres queries and inspects schemas",
                 ["dataops", "postgres", "queries"],
+            ),
+            (
+                GitOpsAgent(),
+                8087,
+                "gitops-agent-riley-001",
+                "GitOps (Riley)",
+                "Runs safe git and gh commands for repos and GitHub",
+                ["git", "github", "ci"],
             ),
         ]
 
@@ -181,6 +190,37 @@ class A2ALabLauncher:
             # Build the Starlette app
             app = a2a_app.build()
 
+            # Add well-known URI endpoint for Agent Card discovery (A2A protocol)
+            from starlette.responses import JSONResponse
+            from starlette.routing import Route
+
+            async def agent_card_endpoint(request):
+                """Serve Agent Card at well-known URI for A2A discovery"""
+                return JSONResponse({
+                    "name": agent_card.name,
+                    "description": agent_card.description,
+                    "url": agent_card.url,
+                    "capabilities": agent_card.capabilities.__dict__ if agent_card.capabilities else {},
+                    "default_input_modes": agent_card.default_input_modes,
+                    "default_output_modes": agent_card.default_output_modes,
+                    "protocol_version": agent_card.protocol_version,
+                    "preferred_transport": agent_card.preferred_transport,
+                    "skills": [
+                        {
+                            "id": skill.id,
+                            "name": skill.name,
+                            "description": skill.description,
+                            "tags": skill.tags,
+                            "examples": skill.examples
+                        } for skill in agent_card.skills
+                    ] if agent_card.skills else [],
+                    "version": agent_card.version,
+                })
+
+            # Add the well-known route
+            well_known_route = Route("/.well-known/agent-card.json", agent_card_endpoint)
+            app.routes.append(well_known_route)
+
             # Register agent in the A2A registry (self-registration)
             from core.agent_registry import (
                 registry,
@@ -196,15 +236,15 @@ class A2ALabLauncher:
                 description=description,
                 agent_type=(
                     AgentType.HOST
-                    if "unused" in agent_id
-                    else AgentType.DEVOPS
-                    if ("docker" in agent_id or "devops" in agent_id)
-                    else AgentType.SECOPS
-                    if "secops" in agent_id
-                    else AgentType.FINOPS
-                    if "finops" in agent_id
+                    if "coordinator" in agent_id
+                    else AgentType.GITOPS
+                    if "gitops" in agent_id
                     else AgentType.DATAOPS
                     if "dataops" in agent_id
+                    else AgentType.FINOPS
+                    if "finops" in agent_id
+                    else AgentType.SECOPS
+                    if "secops" in agent_id
                     else AgentType.DEVOPS
                 ),
                 capabilities=tags,

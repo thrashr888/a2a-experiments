@@ -138,7 +138,7 @@ ROUTING RULES:
 - Infrastructure/DevOps/system performance/monitoring → Infrastructure Monitor (Alex)
 - Security/threats/vulnerabilities/alerts → Security Monitor (Jordan)  
 - Costs/budgets/financial optimization/spending → Cost Monitor (Casey)
-- Docker/containers/container management → Docker Monitor (Morgan)
+- Containers/container management → ContainerOps (Morgan)
 - DataOps/database queries/schema inspection → DataOps (Dana)
 
 Respond with ONLY the agent name (exactly as listed above), nothing else.
@@ -216,7 +216,7 @@ async def route_to_specialist_agent(
     router = A2ATaskRouter()
 
     try:
-        # Determine which agent should handle this request
+            # Determine which agent should handle this request
         agent_name, agent_endpoint = await router.determine_best_agent(user_message)
         print(f"🎯 ROUTING: '{user_message}' → {agent_name} at {agent_endpoint}")
 
@@ -255,7 +255,7 @@ async def route_to_specialist_agent(
 
             if response.status_code == 200:
                 result = response.json()
-                print(f"A2A Response from {agent_name}: {result}")
+                    print(f"A2A Response from {agent_name}: {result}")
 
                 # Check for JSON-RPC success result
                 if "result" in result and result.get("result"):

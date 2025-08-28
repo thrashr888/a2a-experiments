@@ -7,6 +7,7 @@ This is an A2A (Agent-to-Agent) learning project focused on multi-agent systems.
 
 - You MUST stick to A2A protocols. The goal here is to learn A2A and not to build a production-ready system.
 - You MUST use the A2A SDK and OpenAI SDK. Defer to A2A in the case of conflict.
+- I *love* deleting code. If you think something is unnecessary, delete it.
 
 ### Python Environment
 - **ALWAYS use `uv`** for running Python scripts: `uv run python <script>`
@@ -27,7 +28,7 @@ src/a2a_agents/
 ├── devops/infrastructure_monitor.py    # System monitoring, performance
 ├── secops/security_monitor.py          # Security analysis, threat detection  
 ├── finops/cost_monitor.py              # Cost optimization, budget analysis
-├── docker/docker_monitor.py           # Container management, system info, disk usage
+├── containerops/containerops_agent.py # Container management, system info, disk usage
 └── dataops/data_query.py              # PostgreSQL queries, schema inspection, data analysis
 ```
 
@@ -79,7 +80,7 @@ class MyAgent(AIAgent):
 - **Personality**: Data-driven, business-focused, always looking for savings opportunities  
 - **Tools**: Cost analysis, optimization recommendations, budget projections
 
-#### Docker Agent (Morgan)
+#### ContainerOps Agent (Morgan)
 - **Expertise**: Container management, Docker operations, system monitoring, orchestration
 - **Personality**: Practical, operations-focused, thinks in containers and services
 - **Tools**: Container start/stop/restart, system info, disk usage analysis
@@ -158,7 +159,7 @@ asyncio.run(test())
 - Infrastructure/DevOps/system monitoring → Alex (DevOps Agent)
 - Security/threats/vulnerabilities → Jordan (SecOps Agent)  
 - Costs/budgets/financial optimization → Casey (FinOps Agent)
-- Docker/containers/management → Morgan (Docker Agent)
+- Containers/management → Morgan (ContainerOps Agent)
 - Database/PostgreSQL queries → Dana (DataOps Agent)
 
 ## Learning Objectives
@@ -172,9 +173,9 @@ This project demonstrates:
 
 # Resources
 
-- https://a2a-protocol.org/latest/topics/agent-discovery/   
-- https://a2a-protocol.org/latest/topics/extensions/                                              
-- https://a2a-protocol.org/latest/topics/life-of-a-task/#agent-message-or-a-task                  
+- https://a2a-protocol.org/latest/topics/agent-discovery/
+- https://a2a-protocol.org/latest/topics/extensions/
+- https://a2a-protocol.org/latest/topics/life-of-a-task/
 - https://a2a-protocol.org/latest/topics/a2a-and-mcp/
 - https://a2a-protocol.org/latest/tutorials/python/7-streaming-and-multiturn/
 - https://openai.github.io/openai-agents-python/sessions/

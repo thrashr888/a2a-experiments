@@ -46,10 +46,10 @@ This project implements a multi-agent system using the A2A Protocol where specia
 └──────────────────────┘ └────────────────────┘ └────────────────────┘
 
 ┌─────────────────────┐      ┌─────────────────────┐
-│  Docker Agent       │      │  DataOps Agent      │
+│  ContainerOps Agent │      │  DataOps Agent      │
 │  (Morgan)           │      │  (Dana)             │
 │  Container Mgmt &   │      │  PostgreSQL Queries│
-│  Docker Operations  │      │  & Data Analysis    │
+│  Operations         │      │  & Data Analysis    │
 └─────────────────────┘      └─────────────────────┘
                         │
             ┌─────────────────────┐
@@ -63,22 +63,24 @@ This project implements a multi-agent system using the A2A Protocol where specia
 ### ✅ **Proper A2A Protocol Implementation**
 - **Intelligent Task Routing**: AI determines which single specialist agent should handle each request
 - **Agent Identity**: Each agent speaks for themselves with their unique expertise and persona
-- **Real Specialist Responses**: Only the most appropriate agent responds (no coordinator speaking for others)
+- **Real Specialist Responses**: Only the most appropriate agent responds (direct agent communication)
 - **Dynamic Agent Discovery**: Agents self-register and are discoverable via registry
 
 ### 🎯 **Smart Agent Routing**
 - **DevOps Questions** → Alex (Infrastructure Monitor): system metrics, performance, disk usage
 - **Security Questions** → Jordan (Security Monitor): threats, vulnerabilities, alerts  
 - **Cost Questions** → Casey (Cost Monitor): spending analysis, optimization recommendations
-- **Docker Questions** → Morgan (Docker Monitor): container management, Docker system info
+- **Container Questions** → Morgan (ContainerOps): container management, runtime/system info
 - **Database Questions** → Dana (DataOps): PostgreSQL queries, schema inspection, data analysis
+- **Git/GitHub Questions** → Riley (GitOps): repo status, branches, logs, PRs/issues via gh
 
 ### 🔧 **Agent Capabilities**
 - **Alex (DevOps)**: System monitoring, resource alerts, disk usage analysis
 - **Jordan (SecOps)**: Security monitoring, threat detection, compliance checks
 - **Casey (FinOps)**: Cost analysis, budget tracking, optimization suggestions  
-- **Morgan (Docker)**: Container management (start/stop/restart), system monitoring, disk usage
+- **Morgan (ContainerOps)**: Container management (start/stop/restart), system monitoring, disk usage
 - **Dana (DataOps)**: PostgreSQL database queries, schema inspection, data analysis and reporting
+- **Riley (GitOps)**: Git status/log/branches, GitHub PR/issue listing (read-only by default)
 
 ## Technology Stack
 
@@ -100,21 +102,21 @@ a2a-experiments/
 ├── Dockerfile                  # Multi-stage container build
 ├── src/
 │   ├── a2a_agents/
-│   │   ├── devops/             # DevOps agent implementations
-│   │   ├── secops/             # SecOps agent implementations
-│   │   └── finops/             # FinOps agent implementations
+│   │   ├── devops/             # DevOps agents
+│   │   ├── secops/             # SecOps agents
+│   │   ├── finops/             # FinOps agents
+│   │   ├── containerops/       # ContainerOps agents
+│   │   ├── dataops/            # DataOps agents
+│   │   └── gitops/             # GitOps agents
 │   ├── agents/
 │   │   └── memory/             # Lightweight SQLite session storage
 │   ├── core/
 │   │   ├── agent.py            # Agent base + executor glue
 │   │   ├── agent_registry.py   # Agent discovery and management
 │   │   └── config.py           # Configuration management
-│   ├── web/
-│   │   ├── app.py              # Web server
-│   │   └── static/             # HTML, CSS, JS files
-│   └── utils/
-│       └── a2a_mock.py         # Local A2A mock server/client utilities
-├── tests/                      # Unit and integration tests
+│   └── web/
+│       ├── app.py              # Web server
+│       └── static/             # HTML, CSS, JS files
 ├── scripts/
 │   ├── setup-dev.sh            # Development environment setup
 │   └── health-check.sh         # Container health checks
@@ -216,3 +218,10 @@ docker run --rm -p 8080:8080 \
   - Set Postgres `unix_socket_directories` to a stable path (e.g., `/opt/homebrew/var/run/postgresql`).
   - Mount it into the container (see commented volume in `docker-compose.yml`).
   - Set `PGHOST` to the mounted path (e.g., `/var/run/postgresql`).
+
+## Using GitOps with GitHub
+
+- Git commands work inside the container (git is installed).
+- GitHub CLI (`gh`) is installed in the image. Provide a token to enable GitHub operations:
+  - Set `GITHUB_TOKEN` (or `GH_TOKEN`) with appropriate repo permissions.
+  - Without a token, `gh` commands will fail with auth errors; GitOps will report the failure.
