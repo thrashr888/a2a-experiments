@@ -199,12 +199,22 @@ class AIAgent:
                         tool_call, message.conversation_id, user_auth_token
                     )
                     tool_results.append(result)
+                    # Extract the actual response content for better display
+                    tool_content = result
+                    if isinstance(result, dict):
+                        if "response" in result:
+                            tool_content = result["response"]
+                        elif "error" in result:
+                            tool_content = f"Error: {result['error']}"
+                        else:
+                            tool_content = json.dumps(result)
+                    
                     messages.append(
                         {
                             "tool_call_id": tool_call.id,
                             "role": "tool",
                             "name": tool_call.function.name,
-                            "content": json.dumps(result),
+                            "content": str(tool_content),
                         }
                     )
                     await self.session.add_items(
@@ -213,7 +223,7 @@ class AIAgent:
                                 "role": "tool",
                                 "tool_call_id": tool_call.id,
                                 "name": tool_call.function.name,
-                                "content": json.dumps(result),
+                                "content": str(tool_content),
                             }
                         ]
                     )

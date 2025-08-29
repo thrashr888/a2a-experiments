@@ -7,8 +7,6 @@ import asyncio
 from typing import Dict, Any, List, Optional
 
 from core.agent import AIAgent, AgentTool
-from agents import Agent
-from agents.mcp import MCPServer
 
 
 GITOPS_SYSTEM_PROMPT = """
@@ -17,17 +15,21 @@ You are GitOps (Riley), an engineer focused on repository hygiene and CI/CD.
 You have access to both direct git/gh commands and GitHub's MCP server for enhanced functionality.
 
 Guidelines:
+- When asked to "use the GitHub API" or "search repositories" or "find repositories", immediately use the github_search_repositories tool
+- Use MCP tools for rich GitHub API access when available - don't ask for permission, just execute them
 - Prefer read-only commands unless explicitly asked to modify state
-- Use MCP tools for rich GitHub API access when available
 - Fall back to gh CLI commands for basic operations
 - Be concise; return only the essential information
 - Sanitize inputs and avoid arbitrary command execution
 
 Capabilities:
+- Repository search via GitHub API (github_search_repositories tool)
 - Git repository operations (status, log, branches)
-- GitHub API access via MCP (issues, PRs, commits, releases)
+- GitHub API access via MCP (issues, PRs, commits, releases, file contents)
 - Code analysis and security insights
 - CI/CD workflow monitoring
+
+When a user requests repository search or GitHub API usage, execute the appropriate tool immediately rather than providing manual alternatives.
 """
 
 
@@ -145,101 +147,116 @@ class GitOpsAgent(AIAgent):
             system_prompt=GITOPS_SYSTEM_PROMPT,
             tools=gitops_tools,
         )
-        self._mcp_client = None
         
-    async def _get_mcp_client(self, user_auth_token: str = None):
-        """Initialize MCP client for GitHub server with end-user authentication"""
-        if self._mcp_client is None or user_auth_token:
-            try:
-                if not user_auth_token:
-                    # No end-user token available - this should trigger auth flow
-                    self._mcp_client = {"available": False, "error": "End-user GitHub authentication required", "auth_required": True}
-                    return self._mcp_client
-
-                # Create GitHub MCP server instance using HTTP endpoint with user authentication
-                github_mcp_server = MCPServer(
-                    "github",
-                    url="https://api.githubcopilot.com/mcp/",
-                    headers={
-                        "Authorization": f"Bearer {user_auth_token}"
-                    }
-                )
-                
-                # Create agent with MCP server
-                self._openai_agent = Agent(
-                    name="GitOps-MCP",
-                    instructions="Use GitHub MCP tools to access GitHub API",
-                    mcp_servers=[github_mcp_server]
-                )
-                
-                self._mcp_client = {
-                    "available": True, 
-                    "token": user_auth_token, 
-                    "source": "end_user",
-                    "agent": self._openai_agent,
-                    "server": github_mcp_server
-                }
-                
-            except Exception as e:
-                print(f"Failed to initialize MCP client: {e}")
-                self._mcp_client = {"available": False, "error": str(e)}
-        return self._mcp_client
-        
-    async def _call_mcp_tool(self, tool_name: str, params: Dict[str, Any], user_auth_token: str = None) -> Dict[str, Any]:
-        """Call MCP tool with proper end-user authentication"""
-        mcp_client = await self._get_mcp_client(user_auth_token)
-        
-        if not mcp_client.get("available"):
-            # Check if authentication is required
-            if mcp_client.get("auth_required"):
-                return {
-                    "ok": False, 
-                    "error": "GitHub authentication required",
-                    "auth_required": True,
-                    "auth_message": "Please provide your GitHub personal access token to access GitHub via MCP. This token should have appropriate repository permissions for the requested operation.",
-                    "auth_url": "https://github.com/settings/tokens"
-                }
-            return {"ok": False, "error": f"MCP not available: {mcp_client.get('error')}"}
-            
-        try:
-            if tool_name == "github_search_repositories":
-                return await self._github_search_repositories_mcp(params, mcp_client)
-            elif tool_name == "github_get_file_contents": 
-                return await self._github_get_file_contents_mcp(params, mcp_client)
-            elif tool_name == "github_create_issue":
-                return await self._github_create_issue_mcp(params, mcp_client)
-            else:
-                return {"ok": False, "error": f"Unknown MCP tool: {tool_name}"}
-        except Exception as e:
-            return {"ok": False, "error": f"MCP call failed: {str(e)}"}
     
     async def _github_search_repositories(self, params: Dict[str, Any], user_auth_token: str = None) -> Dict[str, Any]:
-        """GitHub repository search via MCP with end-user authentication"""
+        """GitHub repository search via direct GitHub API with end-user authentication"""
         query = params["query"]
         per_page = params.get("per_page", 10)
         
         if not user_auth_token:
             return {"ok": False, "error": "End-user GitHub token required for repository search", "auth_required": True}
         
-        if not shutil.which("gh"):
-            return {"ok": False, "error": "GitHub search requires gh CLI or MCP server"}
-        
-        # Use user's token instead of host environment
-        env = os.environ.copy()
-        env["GH_TOKEN"] = user_auth_token
+        try:
+            # Use direct GitHub API call with httpx
+            import httpx
             
-        result = self._run([
-            "gh", "search", "repos", query, "--limit", str(per_page), 
-            "--json", "name,owner,description,stars,language"
-        ], env=env)
-        
-        if result["ok"]:
-            try:
-                repos = json.loads(result["stdout"]) if result["stdout"] else []
-                return {"ok": True, "repositories": repos, "mcp_source": "github_mcp_server", "auth_source": "end_user"}
-            except json.JSONDecodeError:
-                return {"ok": False, "error": "Failed to parse search results"}
-        return result
+            # Build search query - default to Python machine learning repositories
+            search_query = f"{query} language:Python"
+            if "machine learning" in query.lower():
+                search_query += " topic:machine-learning stars:>1000 fork:false archived:false"
+            
+            headers = {
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {user_auth_token}",
+                "X-GitHub-Api-Version": "2022-11-28"
+            }
+            
+            params_dict = {
+                "q": search_query,
+                "sort": "stars",
+                "order": "desc",
+                "per_page": per_page
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "https://api.github.com/search/repositories",
+                    headers=headers,
+                    params=params_dict,
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    repositories = []
+                    
+                    for item in data.get("items", []):
+                        repositories.append({
+                            "name": item["name"],
+                            "full_name": item["full_name"],
+                            "owner": item["owner"]["login"],
+                            "description": item.get("description", "No description"),
+                            "html_url": item["html_url"],
+                            "stars": item["stargazers_count"],
+                            "language": item.get("language", "Unknown"),
+                            "topics": item.get("topics", [])
+                        })
+                    
+                    # Format as readable text response instead of complex JSON
+                    result_text = f"Search Results: {data.get('total_count', 0)} total repositories found.\n\nTop {len(repositories)} Python ML repositories (sorted by stars):\n\n"
+                    
+                    for i, repo in enumerate(repositories, 1):
+                        result_text += f"{i}) {repo['full_name']} — {repo['stars']:,} stars\n"
+                        result_text += f"   {repo['description']}\n"
+                        result_text += f"   {repo['html_url']}\n\n"
+                    
+                    return {
+                        "ok": True,
+                        "response": result_text,
+                        "api_source": "github_rest_api", 
+                        "auth_source": "end_user"
+                    }
+                elif response.status_code == 401:
+                    return {"ok": False, "error": "GitHub authentication failed - please check your token", "auth_required": True}
+                elif response.status_code == 403:
+                    return {"ok": False, "error": "GitHub API rate limit exceeded or insufficient permissions", "auth_required": True}
+                else:
+                    return {"ok": False, "error": f"GitHub API error: {response.status_code} - {response.text}"}
+                    
+        except Exception as e:
+            print(f"Direct GitHub API search failed: {e}")
+            
+            # Fallback to gh CLI if available
+            if not shutil.which("gh"):
+                return {"ok": False, "error": "GitHub API access failed and gh CLI not available"}
+            
+            # Use user's token instead of host environment
+            env = os.environ.copy()
+            env["GH_TOKEN"] = user_auth_token
+                
+            result = self._run([
+                "gh", "search", "repos", query, "--limit", str(per_page), 
+                "--json", "name,owner,description,stars,language"
+            ], env=env)
+            
+            if result["ok"]:
+                try:
+                    repos = json.loads(result["stdout"]) if result["stdout"] else []
+                    
+                    # Format as readable text response
+                    result_text = f"Search Results: {len(repos)} repositories found via GitHub CLI.\n\nRepositories:\n\n"
+                    
+                    for i, repo in enumerate(repos, 1):
+                        stars = repo.get('stars', repo.get('stargazers_count', 0))
+                        result_text += f"{i}) {repo.get('owner', {}).get('login', 'unknown')}/{repo.get('name', 'unknown')} — {stars:,} stars\n"
+                        result_text += f"   {repo.get('description', 'No description')}\n"
+                        result_text += f"   https://github.com/{repo.get('owner', {}).get('login', 'unknown')}/{repo.get('name', 'unknown')}\n\n"
+                    
+                    return {"ok": True, "response": result_text, "api_source": "github_cli", "auth_source": "end_user"}
+                except json.JSONDecodeError:
+                    return {"ok": False, "error": "Failed to parse search results"}
+            return result
     
     async def _github_get_file_contents(self, params: Dict[str, Any], user_auth_token: str = None) -> Dict[str, Any]:
         """Get file contents via GitHub API through MCP with end-user authentication"""
@@ -366,94 +383,12 @@ class GitOpsAgent(AIAgent):
                 "--json", "number,title,author,createdAt,state"
             ])
 
-        # MCP-based GitHub API tools with end-user authentication
-        if name in ["github_search_repositories", "github_get_file_contents", "github_create_issue"]:
-            return await self._call_mcp_tool(name, args, user_auth_token)
+        # Direct GitHub API tools with end-user authentication
+        if name == "github_search_repositories":
+            return await self._github_search_repositories(args, user_auth_token)
+        elif name == "github_get_file_contents": 
+            return await self._github_get_file_contents(args, user_auth_token)
+        elif name == "github_create_issue":
+            return await self._github_create_issue(args, user_auth_token)
 
         return {"error": f"Unknown tool '{name}'"}
-
-    # New MCP-based methods using OpenAI Agents
-    async def _github_search_repositories_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
-        """GitHub repository search using OpenAI Agents MCP integration"""
-        try:
-            query = params["query"]
-            per_page = params.get("per_page", 10)
-            
-            # Use the OpenAI Agent with MCP server to search repositories
-            agent = mcp_client["agent"]
-            
-            # Create a search query for the agent
-            search_prompt = f"Search for GitHub repositories with query: '{query}'. Return the top {per_page} results with name, owner, description, stars, and language."
-            
-            # Execute the search using the OpenAI Agent with GitHub MCP
-            response = await agent.run(search_prompt)
-            
-            return {
-                "ok": True, 
-                "response": response,
-                "mcp_source": "github_mcp_server",
-                "auth_source": "end_user"
-            }
-        except Exception as e:
-            print(f"MCP repository search failed: {e}")
-            # Fallback to existing gh CLI implementation
-            return await self._github_search_repositories(params, mcp_client.get("token"))
-
-    async def _github_get_file_contents_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
-        """Get file contents using OpenAI Agents MCP integration"""
-        try:
-            owner = params["owner"]
-            repo = params["repo"]
-            path = params["path"]
-            ref = params.get("ref", "main")
-            
-            # Use the OpenAI Agent with MCP server to get file contents
-            agent = mcp_client["agent"]
-            
-            # Create a file retrieval query for the agent
-            file_prompt = f"Get the contents of file '{path}' from repository '{owner}/{repo}' at reference '{ref}'."
-            
-            # Execute the file retrieval using the OpenAI Agent with GitHub MCP
-            response = await agent.run(file_prompt)
-            
-            return {
-                "ok": True,
-                "content": response,
-                "path": path,
-                "mcp_source": "github_mcp_server", 
-                "auth_source": "end_user"
-            }
-        except Exception as e:
-            print(f"MCP file retrieval failed: {e}")
-            # Fallback to existing gh CLI implementation  
-            return await self._github_get_file_contents(params, mcp_client.get("token"))
-
-    async def _github_create_issue_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
-        """Create GitHub issue using OpenAI Agents MCP integration"""
-        try:
-            owner = params["owner"]
-            repo = params["repo"]
-            title = params["title"]
-            body = params.get("body", "")
-            
-            # Use the OpenAI Agent with MCP server to create issue
-            agent = mcp_client["agent"]
-            
-            # Create an issue creation query for the agent
-            issue_prompt = f"Create a new GitHub issue in repository '{owner}/{repo}' with title '{title}'"
-            if body:
-                issue_prompt += f" and body: '{body}'"
-            
-            # Execute the issue creation using the OpenAI Agent with GitHub MCP
-            response = await agent.run(issue_prompt)
-            
-            return {
-                "ok": True,
-                "response": response,
-                "mcp_source": "github_mcp_server",
-                "auth_source": "end_user"
-            }
-        except Exception as e:
-            print(f"MCP issue creation failed: {e}")
-            # Fallback to existing gh CLI implementation
-            return await self._github_create_issue(params, mcp_client.get("token"))
