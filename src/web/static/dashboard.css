@@ -1124,13 +1124,6 @@ details.agent-card:not([open]) > summary .agent-name::after {
   cursor: wait;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .container {
-    /* padding: var(--space-4); */
-  }
-}
-
 @media (max-width: 768px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
