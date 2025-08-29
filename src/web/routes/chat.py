@@ -209,6 +209,22 @@ async def render_agent_error(
     return response.body.decode()
 
 
+async def render_auth_prompt(agent_name: str, response_text: str, auth_info: dict, request: Request):
+    """Render authentication prompt using component template"""
+    context = {
+        "agent_name": agent_name,
+        "content": response_text,
+        "timestamp": datetime.now().strftime("%H:%M:%S"),
+        "auth_service": auth_info.get("service", "GitHub"),
+        "auth_message": auth_info.get("auth_message", "Authentication required"),
+        "auth_url": auth_info.get("auth_url", "https://github.com/settings/tokens"),
+    }
+    response = safe_template_response(
+        "components/auth_prompt.html", request, context
+    )
+    return response.body.decode()
+
+
 async def route_to_specialist_agent(
     conversation_id: str, user_message: str, html_parts: list, request: Request
 ):
@@ -233,6 +249,14 @@ async def route_to_specialist_agent(
         # Call the selected agent using A2A JSON-RPC protocol
         message_parts = [{"kind": "text", "text": user_message}]
 
+        # Get auth header for both metadata and headers
+        auth_header = request.headers.get('authorization')
+
+        # Include auth token in message metadata if available
+        message_metadata = {}
+        if auth_header and auth_header.startswith('Bearer '):
+            message_metadata["auth_token"] = auth_header[7:]  # Remove 'Bearer ' prefix
+
         jsonrpc_payload = {
             "jsonrpc": "2.0",
             "method": "message/send",
@@ -241,16 +265,22 @@ async def route_to_specialist_agent(
                     "messageId": f"msg-{conversation_id}-{datetime.now().timestamp()}",
                     "role": "user",
                     "parts": message_parts,
+                    "metadata": message_metadata if message_metadata else None,
                 }
             },
             "id": f"request-{datetime.now().timestamp()}",
         }
 
+        # Prepare headers, including any Authorization header from the request
+        headers = {"Content-Type": "application/json"}
+        if auth_header:
+            headers['Authorization'] = auth_header
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{agent_endpoint}/",
                 json=jsonrpc_payload,
-                headers={"Content-Type": "application/json"},
+                headers=headers,
                 timeout=45.0,
             )
 
@@ -271,10 +301,46 @@ async def route_to_specialist_agent(
                             response_text = status_message["parts"][0].get(
                                 "text", "No response"
                             )
-                            # Agent successfully responded - let them speak for themselves
-                            agent_html = await render_agent_message(
-                                agent_name, response_text, request
-                            )
+                            
+                            # Check if this response requires authentication
+                            task_status = json_result.get("status", {})
+                            requires_auth = task_status.get("state") == "input_required"
+                            auth_info = None
+                            
+                            # Look for auth info in the response data or artifacts
+                            if requires_auth:
+                                # Check for auth info in artifacts or task data
+                                artifacts = json_result.get("artifacts", [])
+                                for artifact in artifacts:
+                                    if artifact.get("auth_required"):
+                                        auth_info = {
+                                            "auth_required": True,
+                                            "auth_message": artifact.get("auth_message", "Authentication required"),
+                                            "auth_url": artifact.get("auth_url", "https://github.com/settings/tokens"),
+                                            "service": artifact.get("service", "GitHub")
+                                        }
+                                        break
+                                
+                                # Also check for auth info in response text patterns
+                                if not auth_info and "Authentication Required" in response_text:
+                                    auth_info = {
+                                        "auth_required": True,
+                                        "auth_message": "Please provide your GitHub Personal Access Token to continue",
+                                        "auth_url": "https://github.com/settings/tokens",
+                                        "service": "GitHub"
+                                    }
+                            
+                            # Render appropriate component
+                            if requires_auth and auth_info:
+                                # Render authentication prompt
+                                agent_html = await render_auth_prompt(
+                                    agent_name, response_text, auth_info, request
+                                )
+                            else:
+                                # Render normal agent message
+                                agent_html = await render_agent_message(
+                                    agent_name, response_text, request
+                                )
                             html_parts.append(agent_html)
                         else:
                             error_html = await render_agent_error(

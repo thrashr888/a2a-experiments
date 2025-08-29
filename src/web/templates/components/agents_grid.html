@@ -1,95 +1,89 @@
-<h2>🤖 A2A Agent Registry</h2>
 <div class="agents-grid">
     {% if agents %}
         {% for agent in agents %}
-        <div class="agent-card">
-            <!-- A2A AgentCard: Basic Identity -->
-            <div class="agent-header">
-                <div class="agent-name">{{ agent.name }}</div>
-                <div class="status-badge {{ agent.status }}">
-                    {% if agent.status == 'online' %}🟢{% elif agent.status == 'busy' %}🟡{% elif agent.status == 'error' %}🔴{% else %}⚫{% endif %}
-                    {{ agent.status }}
-                </div>
-            </div>
-            
-            <!-- A2A AgentCard: Description & Type -->
-            <div class="agent-description">{{ agent.description }}</div>
-            <div class="agent-type">
-                <strong>Type:</strong> {{ agent.agent_type.value }}
-            </div>
-            
-            <!-- A2A AgentCard: Connectivity -->
-            <div class="agent-connectivity">
-                <div class="agent-endpoint">
-                    <strong>URL:</strong> <code>{{ agent.endpoint }}</code>
-                </div>
-                <div class="agent-id">
-                    <strong>ID:</strong> <code>{{ agent.id }}</code>
-                </div>
-            </div>
-            
-            <!-- A2A AgentCard: I/O Modes (simulated - A2A standard) -->
-            <div class="agent-io-modes">
-                <div class="io-section">
-                    <strong>Input Modes:</strong> <span class="io-mode">text</span>
-                </div>
-                <div class="io-section">
-                    <strong>Output Modes:</strong> <span class="io-mode">text</span>
-                </div>
-            </div>
-            
-            <!-- A2A AgentCard: Skills/Capabilities -->
-            {% if agent.capabilities %}
-            <div class="agent-capabilities">
-                <strong>Domain Skills:</strong>
-                <div class="capabilities-list">
-                    {% for capability in agent.capabilities %}
-                    <span class="capability-badge">{{ capability }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- A2A AgentCard: Dynamic Tools -->
-            {% if agent.tools %}
-            <div class="agent-tools">
-                <strong>Available Tools:</strong>
-                <div class="tools-list">
-                    {% for tool in agent.tools %}
-                    <div class="tool-item">
-                        <div class="tool-header">
-                            <span class="tool-name">{{ tool.name }}</span>
-                            <span class="tool-type-badge {{ tool.type }}">
-                                {% if tool.type == 'mcp' %}🔗 MCP{% else %}🔧 Native{% endif %}
-                            </span>
-                        </div>
-                        <div class="tool-description">{{ tool.description }}</div>
-                        {% if tool.service %}
-                        <div class="tool-service">via {{ tool.service }}</div>
-                        {% endif %}
+        <details class="agent-card">
+            <summary>
+                <div class="agent-header">
+                    <div class="agent-name">{{ agent.name }}</div>
+                    <div class="status-badge {{ agent.status }}">
+                        {% if agent.status == 'online' %}🟢{% elif agent.status == 'busy' %}🟡{% elif agent.status == 'error' %}🔴{% else %}⚫{% endif %}
+                        {{ agent.status }}
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            {% endif %}
-            
-            <!-- A2A AgentCard: Security Requirements -->
-            {% if agent.security and agent.security.authentication_required %}
-            <div class="agent-security">
-                <strong>🔐 Authentication:</strong>
-                <div class="security-info">
-                    <span class="auth-required">{{ agent.security.description }}</span>
+                <div class="agent-description">{{ agent.description }}</div>
+                <div class="agent-type">
+                    <strong>Type:</strong> {{ agent.agent_type }}
                 </div>
+            </summary>
+
+            <div class="agent-extra">
+                <div class="agent-connectivity">
+                    <div class="agent-endpoint">
+                        <strong>URL:</strong> <code>{{ agent.endpoint }}</code>
+                    </div>
+                    <div class="agent-id">
+                        <strong>ID:</strong> <code>{{ agent.id }}</code>
+                    </div>
+                </div>
+
+                <div class="agent-io-modes">
+                    <div class="io-section">
+                        <strong>Input Modes:</strong> <span class="io-mode">text</span>
+                    </div>
+                    <div class="io-section">
+                        <strong>Output Modes:</strong> <span class="io-mode">text</span>
+                    </div>
+                </div>
+
+                {% if agent.capabilities %}
+                <div class="agent-capabilities">
+                    <strong>Domain Skills:</strong>
+                    <div class="capabilities-list">
+                        {% for capability in agent.capabilities %}
+                        <span class="capability-badge">{{ capability }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agent.tools %}
+                <div class="agent-tools">
+                    <strong>Available Tools:</strong>
+                    <div class="tools-list">
+                        {% for tool in agent.tools %}
+                        <div class="tool-item">
+                            <div class="tool-header">
+                                <span class="tool-name">{{ tool.name }}</span>
+                                <span class="tool-type-badge {{ tool.type }}">
+                                    {% if tool.type == 'mcp' %}🔗 MCP{% else %}🔧 Native{% endif %}
+                                </span>
+                            </div>
+                            <div class="tool-description">{{ tool.description }}</div>
+                            {% if tool.service %}
+                            <div class="tool-service">via {{ tool.service }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agent.security and agent.security.authentication_required %}
+                <div class="agent-security">
+                    <strong>🔐 Authentication:</strong>
+                    <div class="security-info">
+                        <span class="auth-required">{{ agent.security.description }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if agent.last_seen %}
+                <div class="agent-last-seen">
+                    <strong>Last seen:</strong> {{ agent.last_seen[:19] if agent.last_seen else 'Never' }}
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-            
-            <!-- A2A AgentCard: Last Contact -->
-            {% if agent.last_seen %}
-            <div class="agent-last-seen">
-                <strong>Last seen:</strong> {{ agent.last_seen[:19] if agent.last_seen else 'Never' }}
-            </div>
-            {% endif %}
-        </div>
+        </details>
         {% endfor %}
     {% else %}
         <div class="agent-card">

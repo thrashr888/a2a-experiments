@@ -7,6 +7,8 @@ import asyncio
 from typing import Dict, Any, List, Optional
 
 from core.agent import AIAgent, AgentTool
+from agents import Agent
+from agents.mcp import MCPServer
 
 
 GITOPS_SYSTEM_PROMPT = """
@@ -149,13 +151,37 @@ class GitOpsAgent(AIAgent):
         """Initialize MCP client for GitHub server with end-user authentication"""
         if self._mcp_client is None or user_auth_token:
             try:
-                # Use end-user authentication token, not host environment token
-                if user_auth_token:
-                    self._mcp_client = {"available": True, "token": user_auth_token, "source": "end_user"}
-                else:
+                if not user_auth_token:
                     # No end-user token available - this should trigger auth flow
                     self._mcp_client = {"available": False, "error": "End-user GitHub authentication required", "auth_required": True}
+                    return self._mcp_client
+
+                # Create GitHub MCP server instance using HTTP endpoint with user authentication
+                github_mcp_server = MCPServer(
+                    "github",
+                    url="https://api.githubcopilot.com/mcp/",
+                    headers={
+                        "Authorization": f"Bearer {user_auth_token}"
+                    }
+                )
+                
+                # Create agent with MCP server
+                self._openai_agent = Agent(
+                    name="GitOps-MCP",
+                    instructions="Use GitHub MCP tools to access GitHub API",
+                    mcp_servers=[github_mcp_server]
+                )
+                
+                self._mcp_client = {
+                    "available": True, 
+                    "token": user_auth_token, 
+                    "source": "end_user",
+                    "agent": self._openai_agent,
+                    "server": github_mcp_server
+                }
+                
             except Exception as e:
+                print(f"Failed to initialize MCP client: {e}")
                 self._mcp_client = {"available": False, "error": str(e)}
         return self._mcp_client
         
@@ -177,11 +203,11 @@ class GitOpsAgent(AIAgent):
             
         try:
             if tool_name == "github_search_repositories":
-                return await self._github_search_repositories(params, user_auth_token)
+                return await self._github_search_repositories_mcp(params, mcp_client)
             elif tool_name == "github_get_file_contents": 
-                return await self._github_get_file_contents(params, user_auth_token)
+                return await self._github_get_file_contents_mcp(params, mcp_client)
             elif tool_name == "github_create_issue":
-                return await self._github_create_issue(params, user_auth_token)
+                return await self._github_create_issue_mcp(params, mcp_client)
             else:
                 return {"ok": False, "error": f"Unknown MCP tool: {tool_name}"}
         except Exception as e:
@@ -345,3 +371,89 @@ class GitOpsAgent(AIAgent):
             return await self._call_mcp_tool(name, args, user_auth_token)
 
         return {"error": f"Unknown tool '{name}'"}
+
+    # New MCP-based methods using OpenAI Agents
+    async def _github_search_repositories_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
+        """GitHub repository search using OpenAI Agents MCP integration"""
+        try:
+            query = params["query"]
+            per_page = params.get("per_page", 10)
+            
+            # Use the OpenAI Agent with MCP server to search repositories
+            agent = mcp_client["agent"]
+            
+            # Create a search query for the agent
+            search_prompt = f"Search for GitHub repositories with query: '{query}'. Return the top {per_page} results with name, owner, description, stars, and language."
+            
+            # Execute the search using the OpenAI Agent with GitHub MCP
+            response = await agent.run(search_prompt)
+            
+            return {
+                "ok": True, 
+                "response": response,
+                "mcp_source": "github_mcp_server",
+                "auth_source": "end_user"
+            }
+        except Exception as e:
+            print(f"MCP repository search failed: {e}")
+            # Fallback to existing gh CLI implementation
+            return await self._github_search_repositories(params, mcp_client.get("token"))
+
+    async def _github_get_file_contents_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
+        """Get file contents using OpenAI Agents MCP integration"""
+        try:
+            owner = params["owner"]
+            repo = params["repo"]
+            path = params["path"]
+            ref = params.get("ref", "main")
+            
+            # Use the OpenAI Agent with MCP server to get file contents
+            agent = mcp_client["agent"]
+            
+            # Create a file retrieval query for the agent
+            file_prompt = f"Get the contents of file '{path}' from repository '{owner}/{repo}' at reference '{ref}'."
+            
+            # Execute the file retrieval using the OpenAI Agent with GitHub MCP
+            response = await agent.run(file_prompt)
+            
+            return {
+                "ok": True,
+                "content": response,
+                "path": path,
+                "mcp_source": "github_mcp_server", 
+                "auth_source": "end_user"
+            }
+        except Exception as e:
+            print(f"MCP file retrieval failed: {e}")
+            # Fallback to existing gh CLI implementation  
+            return await self._github_get_file_contents(params, mcp_client.get("token"))
+
+    async def _github_create_issue_mcp(self, params: Dict[str, Any], mcp_client: Dict[str, Any]) -> Dict[str, Any]:
+        """Create GitHub issue using OpenAI Agents MCP integration"""
+        try:
+            owner = params["owner"]
+            repo = params["repo"]
+            title = params["title"]
+            body = params.get("body", "")
+            
+            # Use the OpenAI Agent with MCP server to create issue
+            agent = mcp_client["agent"]
+            
+            # Create an issue creation query for the agent
+            issue_prompt = f"Create a new GitHub issue in repository '{owner}/{repo}' with title '{title}'"
+            if body:
+                issue_prompt += f" and body: '{body}'"
+            
+            # Execute the issue creation using the OpenAI Agent with GitHub MCP
+            response = await agent.run(issue_prompt)
+            
+            return {
+                "ok": True,
+                "response": response,
+                "mcp_source": "github_mcp_server",
+                "auth_source": "end_user"
+            }
+        except Exception as e:
+            print(f"MCP issue creation failed: {e}")
+            # Fallback to existing gh CLI implementation
+            return await self._github_create_issue(params, mcp_client.get("token"))

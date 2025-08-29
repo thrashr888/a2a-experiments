@@ -102,7 +102,7 @@ class AIAgent:
         """Convert A2A SDK RequestContext to our A2AMessage format"""
         user_input = context.get_user_input()
         return A2AMessage(
-            sender_id=context.call_context.user.id if context.call_context and hasattr(context.call_context, "user") else "client",
+            sender_id=getattr(context.call_context.user, 'id', 'client') if context.call_context and hasattr(context.call_context, "user") else "client",
             receiver_id=self.agent_id,
             method="process_user_message", 
             params={"text": user_input},
@@ -281,10 +281,16 @@ class AI_AgentExecutor(AgentExecutor):
         # Convert to our A2AMessage format using helper method
         message = self.agent.to_a2a_message(context)
         
-        # Extract end-user authentication from HTTP headers (enterprise-ready pattern)
+        # Extract end-user authentication from message metadata (enterprise-ready pattern)
         user_auth_token = None
-        if context.call_context and hasattr(context.call_context, 'request'):
-            # Look for Authorization: Bearer <token> header
+        
+        # Try to get token from message metadata first
+        if hasattr(context, 'message') and context.message and hasattr(context.message, 'metadata'):
+            if context.message.metadata and 'auth_token' in context.message.metadata:
+                user_auth_token = context.message.metadata['auth_token']
+        
+        # Fallback to HTTP headers if available  
+        if not user_auth_token and context.call_context and hasattr(context.call_context, 'request'):
             auth_header = context.call_context.request.headers.get('authorization', '')
             if auth_header.startswith('Bearer '):
                 user_auth_token = auth_header[7:]  # Remove 'Bearer ' prefix
@@ -310,23 +316,45 @@ class AI_AgentExecutor(AgentExecutor):
                 task_id=context.task_id or "unknown",
                 context_id=context.context_id or "unknown", 
                 final=False,
-                status=TaskStatus(state=TaskState.running, message=initial_message)
+                status=TaskStatus(state=TaskState.working, message=initial_message)
             )
         )
 
         # Process the message with end-user authentication
         response = await self.agent.process_message(message, user_auth_token)
 
+        # Check if authentication is required
+        auth_required = False
+        auth_info = None
+        if response.data and response.data.get("tool_results"):
+            for tool_result in response.data["tool_results"]:
+                if isinstance(tool_result, dict) and tool_result.get("auth_required"):
+                    auth_required = True
+                    auth_info = {
+                        "auth_required": True,
+                        "auth_message": tool_result.get("auth_message", "Authentication required"),
+                        "auth_url": tool_result.get("auth_url", ""),
+                        "service": "GitHub"
+                    }
+                    break
+
+        # Determine task state based on auth requirements
+        if auth_required:
+            task_state = TaskState.input_required
+            response_text = response.response + "\n\n🔐 **Authentication Required**: Please provide your GitHub Personal Access Token to continue."
+        else:
+            task_state = TaskState.completed
+            response_text = response.response
+
         # Send TaskArtifactUpdateEvent with the response (A2A streaming pattern)
-        from a2a.types import TaskArtifactUpdateEvent, Artifact, TextArtifact
+        from a2a.types import TaskArtifactUpdateEvent, Artifact, TextPart
         
         # Create artifact with agent's response
-        response_artifact = TextArtifact(
+        response_artifact = Artifact(
             artifact_id=str(uuid.uuid4()),
-            kind="text",
-            title=f"Response from {self.agent.agent_id}",
-            text=response.response,
-            last_chunk=True
+            name=f"Response from {self.agent.agent_id}",
+            description="Agent response",
+            parts=[TextPart(kind="text", text=response_text)]
         )
         
         # Send artifact update event
@@ -339,15 +367,20 @@ class AI_AgentExecutor(AgentExecutor):
         )
 
         # Create a Message object with the agent's response
-
         response_message = Message(
             message_id=str(uuid.uuid4()),
             role="agent",
-            parts=[TextPart(kind="text", text=response.response)],
+            parts=[TextPart(kind="text", text=response_text)],
         )
 
+        # Add auth info to message metadata if auth is required
+        if auth_required and auth_info:
+            # Store auth info in response data for UI to access
+            response.data = response.data or {}
+            response.data["auth_info"] = auth_info
+
         # Create TaskStatus with the response message
-        task_status = TaskStatus(state=TaskState.completed, message=response_message)
+        task_status = TaskStatus(state=task_state, message=response_message)
 
         # Send the status update event
         await event_queue.enqueue_event(

@@ -28,7 +28,6 @@ async def get_stats_component(request: Request):
         context = {
             "total_agents": total_agents,
             "online_agents": online_agents,
-            "workflows_run": 0,  # Future: Track conversation count in session storage
             "system_status": system_status,
         }
     except Exception:
@@ -37,7 +36,6 @@ async def get_stats_component(request: Request):
     fallback = {
         "total_agents": 0,
         "online_agents": 0,
-        "workflows_run": 0,
         "system_status": "🔴",
     }
 
@@ -57,3 +55,4 @@ async def get_agents_grid_component(request: Request):
     return safe_template_response(
         "components/agents_grid.html", request, context, fallback
     )
+

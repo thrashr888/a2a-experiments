@@ -1,0 +1,138 @@
+<!-- Authentication Prompt -->
+<div class="message auth-prompt" data-auth-service="{{ auth_service }}">
+    <div class="message-header">
+        <span class="message-sender">🔐 {{ agent_name }}</span>
+        <span class="message-time">{{ timestamp }}</span>
+    </div>
+    <div class="message-content">
+        {{ content | markdown }}
+        
+        <div class="auth-form" style="margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #007bff;">
+            <div class="auth-header">
+                <h4 style="margin: 0 0 8px 0; color: #495057;">
+                    🔑 {{ auth_service }} Authentication Required
+                </h4>
+                <p style="margin: 0 0 12px 0; color: #6c757d; font-size: 14px;">
+                    {{ auth_message }}
+                </p>
+            </div>
+            
+            <div class="auth-input-group">
+                <label for="github-token-input" style="display: block; margin-bottom: 4px; font-weight: 500; color: #495057;">
+                    Personal Access Token:
+                </label>
+                <input 
+                    type="password" 
+                    id="github-token-input" 
+                    class="auth-token-input"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    style="width: 100%; padding: 8px 12px; border: 1px solid #ced4da; border-radius: 4px; font-family: monospace; font-size: 14px;"
+                >
+                <div class="auth-buttons" style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
+                    <button 
+                        onclick="saveGitHubToken(this)" 
+                        class="auth-save-btn"
+                        style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;"
+                    >
+                        Save Token & Retry
+                    </button>
+                    <a 
+                        href="{{ auth_url }}" 
+                        target="_blank" 
+                        style="font-size: 13px; color: #007bff; text-decoration: none;"
+                    >
+                        Generate token →
+                    </a>
+                </div>
+                <div class="auth-help" style="margin-top: 8px; font-size: 12px; color: #6c757d;">
+                    💡 Required scopes: <code>repo</code>, <code>issues</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveGitHubToken(button) {
+    const input = button.closest('.auth-prompt').querySelector('.auth-token-input');
+    const token = input.value.trim();
+    
+    if (!token) {
+        alert('Please enter your GitHub Personal Access Token');
+        return;
+    }
+    
+    if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+        if (!confirm('This doesn\'t look like a valid GitHub token. Continue anyway?')) {
+            return;
+        }
+    }
+    
+    // Store token in sessionStorage for this session
+    sessionStorage.setItem('github_token', token);
+    
+    // Show success feedback
+    button.textContent = 'Token Saved! Retrying...';
+    button.style.background = '#007bff';
+    button.disabled = true;
+    
+    // Clear the input for security
+    input.value = '';
+    
+    // Retry the original request with authentication
+    retryWithAuth();
+}
+
+function retryWithAuth() {
+    const token = sessionStorage.getItem('github_token');
+    if (!token) return;
+    
+    // Get the last user message to retry
+    const messages = document.querySelectorAll('.message.user-message');
+    const lastUserMessage = messages[messages.length - 1];
+    if (!lastUserMessage) return;
+    
+    const messageContent = lastUserMessage.querySelector('.message-content').textContent.trim();
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('message', messageContent);
+    
+    // Send request with authorization header
+    fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        body: formData
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Remove the auth prompt and add the new response
+        const authPrompt = document.querySelector('.message.auth-prompt');
+        if (authPrompt) {
+            authPrompt.remove();
+        }
+        
+        // Add the new response to the chat
+        const messagesContainer = document.getElementById('messages');
+        if (messagesContainer) {
+            messagesContainer.insertAdjacentHTML('beforeend', html);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    })
+    .catch(error => {
+        console.error('Retry failed:', error);
+        alert('Failed to retry request. Please try again.');
+    });
+}
+
+// Auto-fill token if already stored
+document.addEventListener('DOMContentLoaded', function() {
+    const token = sessionStorage.getItem('github_token');
+    const tokenInput = document.getElementById('github-token-input');
+    if (token && tokenInput) {
+        tokenInput.placeholder = 'Token saved in this session';
+    }
+});
+</script>

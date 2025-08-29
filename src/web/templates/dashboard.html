@@ -3,31 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>A2A Learning Lab - Multi-Agent Dashboard</title>
+    <meta name="description" content="Multi-Agent System for DevOps, SecOps, FinOps, and Container Operations">
+    <meta name="author" content="A2A Learning Lab">
+    <meta name="keywords" content="A2A, Multi-Agent, DevOps, SecOps, FinOps, ContainerOps, DataOps, GitOps">
+    <meta name="robots" content="index, follow">
+
+    <meta property="og:title" content="A2A Learning Lab - Multi-Agent Dashboard">
+    <meta property="og:description" content="Multi-Agent System for DevOps, SecOps, FinOps, and Container Operations">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="A2A Learning Lab">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="A2A Learning Lab - Multi-Agent Dashboard">
+    <meta name="twitter:description" content="Multi-Agent System for DevOps, SecOps, FinOps, and Container Operations">
+
     <link rel="stylesheet" href="{{ url_for('static', path='/dashboard.css') }}">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="{{ url_for('static', path='/dashboard.js') }}"></script>
 </head>
 <body hx-boost="true">
-    <div class="container">
-        <div class="header">
-            <div class="title">
-                <span class="emoji">🤖</span>
-                <h1>A2A Learning Lab</h1>
-            </div>
-            <p>Multi-Agent System for DevOps, SecOps, FinOps, and Container Operations</p>
-        </div>
-        
+    <div class="container two-col">
         <!-- Chat Interface -->
         <div class="chat-container">
             <div class="chat-header">
-                <h2>💬 Chat with A2A Agents</h2>
-                <button class="clear-chat-btn" 
-                        hx-post="/api/chat/clear" 
-                        hx-target="#chat-messages" 
-                        hx-swap="innerHTML"
-                        hx-confirm="Are you sure you want to clear the chat history?">
-                    🗑️ Clear Chat
-                </button>
+                <h2></h2>
+                <div class="chat-controls">
+                    <div class="mini-stats status-only"
+                         hx-get="/api/stats"
+                         hx-trigger="load, every 10s"
+                         hx-swap="innerHTML"></div>
+                    <button class="settings-btn" onclick="toggleSettingsPanel()">
+                        🔐 Settings
+                    </button>
+                    <button class="clear-chat-btn" 
+                            hx-post="/api/chat/clear" 
+                            hx-target="#chat-messages" 
+                            hx-swap="innerHTML"
+                            hx-confirm="Are you sure you want to clear the chat history?">
+                        🗑️ Clear Chat
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Settings Panel -->
+            <div id="settings-panel" class="settings-panel" style="display: none;">
+                <div class="settings-header">
+                    <h3>🔐 Authentication Settings</h3>
+                    <button class="close-settings" onclick="toggleSettingsPanel()">✕</button>
+                </div>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="github-token-setting">GitHub Personal Access Token:</label>
+                        <div class="token-input-group">
+                            <input 
+                                type="password" 
+                                id="github-token-setting" 
+                                placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                class="settings-token-input"
+                            >
+                            <div class="token-actions">
+                                <button onclick="saveGitHubTokenSetting()" class="save-token-btn">Save</button>
+                                <button onclick="clearGitHubTokenSetting()" class="clear-token-btn">Clear</button>
+                                <span id="token-status" class="token-status"></span>
+                            </div>
+                        </div>
+                        <div class="setting-help">
+                            <p>💡 <strong>Required scopes:</strong> <code>repo</code>, <code>issues</code></p>
+                            <p>🔗 <a href="https://github.com/settings/tokens" target="_blank">Generate token →</a></p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="chat-window" id="chat-window">
                 <div class="chat-messages" id="chat-messages" 
@@ -52,30 +99,7 @@
                       hx-target="#chat-messages" 
                       hx-swap="beforeend scroll:bottom"
                       hx-indicator=".chat-send-btn"
-                      hx-on::after-request="this.reset()"
-                      hx-on::before-request="
-                        const typingDiv = document.createElement('div');
-                        typingDiv.id = 'typing-temp';
-                        typingDiv.innerHTML = `
-                          <div class='message assistant-message typing-indicator'>
-                            <div class='message-header'>
-                              <span class='message-sender'>🤖 A2A Task Router</span>
-                              <span class='message-time'>thinking...</span>
-                            </div>
-                            <div class='message-content'>
-                              <span class='typing-dots'>
-                                <span>.</span><span>.</span><span>.</span>
-                              </span>
-                            </div>
-                          </div>
-                        `;
-                        document.getElementById('chat-messages').appendChild(typingDiv);
-                        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
-                      "
-                      hx-on::after-settle="
-                        const typingEl = document.getElementById('typing-temp');
-                        if (typingEl) typingEl.remove();
-                      ">
+                      hx-headers='js:{"Authorization": sessionStorage.getItem("github_token") ? "Bearer " + sessionStorage.getItem("github_token") : ""}'>
                     <input type="text" 
                            name="message" 
                            class="chat-input" 
@@ -90,47 +114,105 @@
             </div>
         </div>
         
-        <!-- Stats Grid - Auto-refreshing -->
-        <div class="stats-grid" 
-             hx-get="/api/stats" 
-             hx-trigger="load, every 10s" 
-             hx-swap="innerHTML">
-            <div class="stat-card">
-                <div class="stat-value">-</div>
-                <div class="stat-label">Total Agents</div>
+        <!-- Agents Column -->
+        <div class="agents-panel">
+            <div class="agents-header">
+                <h2>🤖 A2A Chat</h2>
+                <div class="agents-stats"
+                     hx-get="/api/stats"
+                     hx-trigger="load, every 10s"
+                     hx-swap="innerHTML"></div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value">-</div>
-                <div class="stat-label">Online Agents</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Workflows Run</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">🟡</div>
-                <div class="stat-label">System Status</div>
-            </div>
-        </div>
-        
-        <!-- Agents Grid - Auto-refreshing -->
-        <div hx-get="/api/agents-grid" 
-             hx-trigger="load, every 15s" 
-             hx-swap="innerHTML">
-            <h2>🤖 Active Agents</h2>
-            <div class="agents-grid">
-                <div class="agent-card">
-                    <div class="agent-header">
-                        <div class="agent-name">Loading...</div>
-                        <div class="status-badge">-</div>
+            <div class="agents-grid-wrapper" hx-get="/api/agents-grid" 
+                 hx-trigger="load, every 15s" 
+                 hx-swap="innerHTML">
+                <div class="agents-grid">
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-name">Loading...</div>
+                            <div class="status-badge">-</div>
+                        </div>
+                        <div class="agent-description">Loading agents...</div>
                     </div>
-                    <div class="agent-description">Loading agents...</div>
                 </div>
             </div>
         </div>
 
     </div>
 
+    <script>
+    // Settings panel functions
+    function toggleSettingsPanel() {
+        const panel = document.getElementById('settings-panel');
+        const isVisible = panel.style.display !== 'none';
+        panel.style.display = isVisible ? 'none' : 'block';
+        
+        // Load current token status when opening
+        if (!isVisible) {
+            updateTokenStatus();
+        }
+    }
+    
+    function saveGitHubTokenSetting() {
+        const input = document.getElementById('github-token-setting');
+        const token = input.value.trim();
+        
+        if (!token) {
+            showTokenStatus('Please enter a token', 'error');
+            return;
+        }
+        
+        if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+            if (!confirm('This doesn\'t look like a valid GitHub token. Continue anyway?')) {
+                return;
+            }
+        }
+        
+        // Store token in sessionStorage
+        sessionStorage.setItem('github_token', token);
+        
+        // Clear input for security
+        input.value = '';
+        
+        showTokenStatus('Token saved successfully! 🎉', 'success');
+        updateTokenStatus();
+    }
+    
+    function clearGitHubTokenSetting() {
+        sessionStorage.removeItem('github_token');
+        document.getElementById('github-token-setting').value = '';
+        showTokenStatus('Token cleared', 'info');
+        updateTokenStatus();
+    }
+    
+    function showTokenStatus(message, type) {
+        const statusEl = document.getElementById('token-status');
+        statusEl.textContent = message;
+        statusEl.className = `token-status ${type}`;
+        
+        // Clear status after 3 seconds
+        setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = 'token-status';
+        }, 3000);
+    }
+    
+    function updateTokenStatus() {
+        const hasToken = sessionStorage.getItem('github_token');
+        const settingsBtn = document.querySelector('.settings-btn');
+        
+        if (hasToken) {
+            settingsBtn.innerHTML = '🔓 Settings';
+            settingsBtn.title = 'GitHub token configured';
+        } else {
+            settingsBtn.innerHTML = '🔐 Settings';
+            settingsBtn.title = 'No GitHub token configured';
+        }
+    }
+    
+    // Update status on page load
+    document.addEventListener('DOMContentLoaded', updateTokenStatus);
+    </script>
 
 </body>
 </html>
